@@ -489,26 +489,6 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
     pages.push(page);
     page = []; y = options.marginTop;
   };
-  const fitFigureToRemainingSpace = (block: Compiled, available: number) => {
-    if (block.type !== "image" || block.flow === "float" || block.atoms.length !== 1) return;
-    const atom = block.atoms[0]!, image = atom.items.find(item => item.type === "image");
-    if (!image || atom.height <= available) return;
-    if (image.asset.width >= image.asset.height && options.layoutMode !== "compact") return;
-    const nonImageHeight = atom.height - image.height, targetImageHeight = available - nonImageHeight;
-    const scale = targetImageHeight / image.height;
-    if (scale < (options.layoutMode === "compact" ? 0.42 : 0.55) || scale >= 1) return;
-    const oldWidth = image.width, oldHeight = image.height;
-    image.width *= scale; image.height = targetImageHeight;
-    if (options.imageAlign === "center") image.x += (oldWidth - image.width) / 2;
-    else if (options.imageAlign === "right") image.x += oldWidth - image.width;
-    const shift = oldHeight - image.height;
-    for (const item of atom.items) {
-      if (item === image) continue;
-      if (item.type === "text" || item.type === "rect" || item.type === "image") item.y -= shift;
-      else { item.y1 -= shift; item.y2 -= shift; }
-    }
-    atom.height -= shift;
-  };
   const place = (atom: Atom) => {
     for (const item of atom.items) {
       const copy = { ...item } as DrawItem;
@@ -523,7 +503,6 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
     const block = compiled[blockIndex]!, previous = compiled[blockIndex - 1], next = compiled[blockIndex + 1];
     let gap = fresh() ? 0 : gapBetween(previous, block);
     if (block.type === "rule" && (fresh() || y + gap + (block.atoms[0]?.height ?? 0) + (next ? gapBetween(block, next) + (next.atoms[0]?.height ?? 0) : 0) > bottom)) { if (!fresh()) newPage(); continue; }
-    if (!fresh()) fitFigureToRemainingSpace(block, bottom - y - gap);
     const firstCount = Math.min(block.atoms.length, block.splitMin ?? 1);
     let need = gap + block.atoms.slice(0, firstCount).reduce((sum, atom) => sum + atom.height, 0);
     if (block.keep && next) {

@@ -22,7 +22,7 @@ Paintdown is a deterministic Markdown layout engine and native PDF writer for Ty
 
 The static workbench loads `README.md`, `index.md`, or the first Markdown file from a selected folder. Relative PNG and JPEG references are resolved from that local folder in memory; nothing is sent to a server.
 
-Balanced layout keeps short section introductions with their figures. Compact layout may scale a figure into the remaining page space and continue later headings, paragraphs, and lists beside a portrait until the image ends.
+Balanced layout keeps short section introductions with their figures and respects peer section boundaries. Compact layout continues chronologically valid headings, paragraphs, and lists beside a portrait until the image ends. Both policies use the same image dimensions.
 
 ## Quick start
 

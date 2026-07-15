@@ -8,6 +8,10 @@ const asset = (width: number, height: number): ImageAsset => ({
 });
 
 describe("typography defaults", () => {
+  it("uses compact chronological flow by default", () => {
+    expect(DEFAULT_OPTIONS.layoutMode).toBe("compact");
+  });
+
   it("uses bold headings by default but regular body text", () => {
     expect(DEFAULT_OPTIONS.boldHeadings).toBe(true);
     const layout = layoutDocument([
@@ -132,7 +136,7 @@ describe("image layout", () => {
       ] },
       { type: "heading", level: 2, runs: [{ text: "Next section" }] },
       { type: "paragraph", runs: [{ text: "Back in the full column." }] },
-    ]);
+    ], undefined, { layoutMode: "balanced" });
     const page = layout.pages[0]!, image = page.find(item => item.type === "image")!;
     for (const word of ["Meet", "Field", "Pasture", "Quiet"]) {
       const item = page.find(candidate => candidate.type === "text" && candidate.text === word)!;
@@ -167,7 +171,7 @@ describe("image layout", () => {
     expect(compactNext.y).toBeLessThan(compactImage.y + compactImage.height);
   });
 
-  it("offers balanced figure anchoring and compact page filling", () => {
+  it("changes figure anchoring without changing image dimensions", () => {
     const filler = Array.from({ length: 18 }, (_, index) => ({ type: "paragraph" as const, runs: [{ text: `Filler-${index}` }] }));
     const blocks = [...filler,
       { type: "heading" as const, level: 2 as const, runs: [{ text: "FigureHeading" }] },
@@ -181,10 +185,11 @@ describe("image layout", () => {
     expect(pageOf(balanced, "FigureHeading")).toBe(imagePage(balanced));
     expect(pageOf(balanced, "FigureHeading")).toBe(1);
     expect(pageOf(compact, "FigureHeading")).toBe(0);
-    expect(imagePage(compact)).toBe(0);
+    expect(imagePage(compact)).toBe(1);
     const balancedImage = balanced.pages.flat().find(item => item.type === "image")!;
     const compactImage = compact.pages.flat().find(item => item.type === "image")!;
-    expect(compactImage.width).toBeLessThan(balancedImage.width);
+    expect(compactImage.width).toBeCloseTo(balancedImage.width);
+    expect(compactImage.height).toBeCloseTo(balancedImage.height);
   });
 
   it("does not anchor more than three lead paragraphs to a figure", () => {

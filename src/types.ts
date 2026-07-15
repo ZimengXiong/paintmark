@@ -115,7 +115,7 @@ export interface LayoutResult {
 
 export interface RenderOptions {
   pageSize: "letter" | "a4";
-  /** Balanced keeps short section introductions with their figure; compact prefers filling the current page. */
+  /** Balanced respects section boundaries; compact adopts later flow blocks into available figure columns. */
   layoutMode: "balanced" | "compact";
   marginX: number;
   marginTop: number;
