@@ -6,7 +6,7 @@ import type { Block, Color, DrawItem, InlineRun, LayoutResult, RenderOptions, Te
 
 interface Word extends InlineRun { width: number; size: number; space: boolean; family: string; mono: boolean; tracking: number; assetWidth?: number; assetHeight?: number }
 interface Atom { height: number; items: DrawItem[] }
-interface Compiled { type: Block["type"]; atoms: Atom[]; before: number; after: number; splitMin?: number; keep?: boolean; decoration?: "code" | "quote"; flow?: "float" }
+interface Compiled { type: Block["type"]; atoms: Atom[]; before: number; after: number; splitMin?: number; keep?: boolean; decoration?: "code" | "quote"; flow?: "float"; startType?: Block["type"]; endType?: Block["type"] }
 
 const BODY: Color = [0.19, 0.21, 0.24];
 const MUTED: Color = [0.3, 0.32, 0.38];
@@ -153,8 +153,160 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
     table: [0.9, 0.9], image: [options.imageGap, options.imageGap], math: [0.9, 1], rule: [options.ruleSpace, options.ruleSpace],
   } as const;
 
+  const gapBetween = (previous: Compiled | undefined, next: Compiled) => {
+    if (!previous) return 0;
+    const previousType = previous.endType ?? previous.type, nextType = next.startType ?? next.type;
+    if (previousType === "rule" || nextType === "rule") return options.ruleSpace * em * options.blockGap;
+    let gap = Math.max(previous.after, next.before);
+    if (previousType === "heading") gap = previous.after;
+    if (previousType === "paragraph" && ["list", "code", "quote", "math", "image"].includes(nextType)) {
+      gap = nextType === "image" && next.flow === "float"
+        ? options.paragraphSpace
+        : Math.max(next.before * options.attachTight, 0.15);
+      if (nextType === "list") gap = Math.max(gap, options.listItemGap);
+    }
+    return gap * em * options.blockGap;
+  };
+
+  function columnBlock(block: Block, width: number, x: number): Compiled | undefined {
+    if (block.type === "heading") {
+      const scale = [options.h1Scale, options.h2Scale, options.h3Scale][block.level - 1]!, size = em * scale;
+      const smallCaps = block.level === 2 && options.smallCapsH2, headingSize = smallCaps ? size * 0.82 : size;
+      const runs = block.runs.map(run => ({ ...run, bold: run.bold || options.boldHeadings }));
+      return { type: block.type, atoms: textAtoms(runs, headingSize, width, headingSize * HEADING_LINE_HEIGHT[block.level - 1]!, {
+        x, family: options.headingFont, letterSpacing: options.headingLetterSpacing, upper: smallCaps,
+        tracking: smallCaps ? headingSize * 0.08 : 0,
+      }), before: options.headingBefore * scale * 0.75, after: options.headingAfter * scale * 0.8 };
+    }
+    if (block.type === "paragraph") return { type: block.type,
+      atoms: textAtoms(block.runs, em, width, lineHeight, { x, justify: options.justify }),
+      before: 0, after: spacing.paragraph[1], splitMin: 2 };
+    if (block.type === "list") {
+      const atoms: Atom[] = []; let ordered = 0;
+      block.items.forEach((item, itemIndex) => {
+        const indent = metrics.listIndent * (1 + item.depth), lines = wrap(item.runs, em, width - indent);
+        const marker = item.ordered ? `${++ordered}.` : item.depth ? "◦" : "•";
+        lines.forEach((words, lineIndex) => {
+          const itemGap = lineIndex === 0 && itemIndex > 0 ? options.listItemGap * em : 0;
+          const items = makeLine(words, x + indent, itemGap, em);
+          if (!lineIndex) items.unshift({ type: "text", x: x + indent - measure(`${marker}  `, em), y: itemGap,
+            size: em, text: `${marker} `, family: options.bodyFont, color: MUTED });
+          atoms.push({ height: lineHeight + itemGap, items });
+        });
+      });
+      return { type: block.type, atoms, before: spacing.list[0], after: spacing.list[1], splitMin: 1 };
+    }
+    return undefined;
+  }
+
   let floatedFigures = 0;
+  function editorialSection(start: number): { block: Compiled; end: number } | undefined {
+    const heading = blocks[start];
+    if (options.imageFlow !== "smart" || heading?.type !== "heading") return;
+    let imageIndex = start + 1;
+    while (imageIndex <= start + 2 && blocks[imageIndex]?.type === "paragraph") imageIndex++;
+    const imageBlock = blocks[imageIndex];
+    if (imageBlock?.type !== "image" || !imageBlock.asset || imageBlock.asset.height <= imageBlock.asset.width * 1.1) return;
+
+    const captionReserve = options.showImageAltAsCaption && imageBlock.alt ? em * (options.imageCaptionGap + 0.88 * 1.12) : 0;
+    const usablePageHeight = pageHeight - options.marginTop - options.marginBottom;
+    const usableHeight = Math.max(em * 6, usablePageHeight * options.imageMaxHeightRatio - captionReserve);
+    const intrinsicWidth = imageBlock.asset.width * 72 / options.imageDpi;
+    const intrinsicHeight = imageBlock.asset.height * 72 / options.imageDpi;
+    const imageScale = Math.min(contentWidth * options.imageFloatWidthRatio / intrinsicWidth, usableHeight / intrinsicHeight,
+      options.imageAllowUpscale ? Infinity : 1);
+    const width = intrinsicWidth * imageScale, height = intrinsicHeight * imageScale, gutter = options.imageFloatGap * em;
+    const textWidth = contentWidth - width - gutter;
+    if (textWidth < contentWidth * 0.38) return;
+    const side = options.imageFloatSide === "alternate" ? (floatedFigures++ % 2 ? "left" : "right") : options.imageFloatSide;
+    const imageX = side === "left" ? 0 : contentWidth - width, textX = side === "left" ? width + gutter : 0;
+
+    const figureItems: DrawItem[] = [{ type: "image", x: imageX, y: 0, width, height, asset: imageBlock.asset }];
+    let figureHeight = height;
+    if (options.showImageAltAsCaption && imageBlock.alt) {
+      const captionSize = em * 0.88, captionLine = captionSize * 1.12;
+      const captions = textAtoms([{ text: imageBlock.alt, italic: true }], captionSize, width, captionLine, { x: imageX, family: options.bodyFont });
+      if (captions.length) captions[0]!.height += options.imageCaptionGap * em;
+      let captionY = height;
+      for (const atom of captions) {
+        for (const item of atom.items) {
+          const copy = { ...item } as DrawItem;
+          if (copy.type === "text" || copy.type === "rect" || copy.type === "image") {
+            copy.y += captionY + options.imageCaptionGap * em; if (copy.type === "text") copy.color = MUTED;
+          } else { copy.y1 += captionY; copy.y2 += captionY; }
+          figureItems.push(copy);
+        }
+        captionY += atom.height;
+      }
+      figureHeight = captionY;
+    }
+
+    const column: Compiled[] = [];
+    for (let index = start; index < imageIndex; index++) {
+      const compiledBlock = columnBlock(blocks[index]!, textWidth, textX);
+      if (!compiledBlock) return;
+      column.push(compiledBlock);
+    }
+    let end = imageIndex, textHeight = 0;
+    const heightWith = (candidate: Compiled) => textHeight + gapBetween(column.at(-1), candidate)
+      + candidate.atoms.reduce((sum, atom) => sum + atom.height, 0);
+    let heightPrevious: Compiled | undefined;
+    for (const part of column) {
+      textHeight += gapBetween(heightPrevious, part) + part.atoms.reduce((sum, atom) => sum + atom.height, 0);
+      heightPrevious = part;
+    }
+
+    for (let index = imageIndex + 1; index < blocks.length; index++) {
+      const source = blocks[index]!;
+      if (source.type === "heading") {
+        if (source.level <= heading.level) break;
+        const introducesImage = blocks.slice(index + 1, index + 3).some(next => next.type === "image");
+        if (introducesImage) break;
+        const headingPart = columnBlock(source, textWidth, textX), following = blocks[index + 1],
+          followingPart = following ? columnBlock(following, textWidth, textX) : undefined;
+        if (!headingPart || !followingPart || following?.type === "heading") break;
+        let projected = textHeight, projectedPrevious = column.at(-1);
+        for (const part of [headingPart, followingPart]) {
+          projected += gapBetween(projectedPrevious, part) + part.atoms.reduce((sum, atom) => sum + atom.height, 0);
+          projectedPrevious = part;
+        }
+        if (projected > figureHeight) break;
+        column.push(headingPart, followingPart); textHeight = projected; end = index + 1; index++;
+        continue;
+      }
+      const candidate = columnBlock(source, textWidth, textX);
+      if (!candidate) break;
+      const candidateHeight = heightWith(candidate);
+      if (index > imageIndex + 1 && candidateHeight > figureHeight) break;
+      column.push(candidate); textHeight = candidateHeight; end = index;
+    }
+
+    let y = 0; let previous: Compiled | undefined;
+    for (const part of column) {
+      y += gapBetween(previous, part);
+      for (const atom of part.atoms) {
+        for (const item of atom.items) {
+          const copy = { ...item } as DrawItem;
+          if (copy.type === "text" || copy.type === "rect" || copy.type === "image") copy.y += y;
+          else { copy.y1 += y; copy.y2 += y; }
+          figureItems.push(copy);
+        }
+        y += atom.height;
+      }
+      previous = part;
+    }
+    if (options.blankSpaceDecoration === "dot-grid" && figureHeight - y >= 3 * em) {
+      const top = y + 1.25 * em, bottom = figureHeight - 0.75 * em;
+      figureItems.unshift(...grayDotGrid(textX, top, textWidth, bottom - top, options.blankSpaceDecorationSeed ^ 0x51f15e ^ start));
+    }
+    return { block: { type: "image", atoms: [{ height: Math.max(figureHeight, y), items: figureItems }],
+      before: column[0]!.before, after: column.at(-1)!.after, flow: "float",
+      startType: column[0]!.type, endType: column.at(-1)!.type }, end };
+  }
+
   for (let sourceIndex = 0; sourceIndex < blocks.length; sourceIndex++) {
+    const editorial = editorialSection(sourceIndex);
+    if (editorial) { compiled.push(editorial.block); sourceIndex = editorial.end; continue; }
     const block = blocks[sourceIndex]!;
     if (block.type === "heading") {
       const scale = [options.h1Scale, options.h2Scale, options.h3Scale][block.level - 1]!, size = em * scale;
@@ -317,20 +469,6 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
       compiled.push({ type: block.type, atoms, before: spacing.table[0], after: spacing.table[1], splitMin: 2 });
     }
   }
-
-  const gapBetween = (previous: Compiled | undefined, next: Compiled) => {
-    if (!previous) return 0;
-    if (previous.type === "rule" || next.type === "rule") return options.ruleSpace * em * options.blockGap;
-    let gap = Math.max(previous.after, next.before);
-    if (previous.type === "heading") gap = previous.after;
-    if (previous.type === "paragraph" && ["list", "code", "quote", "math", "image"].includes(next.type)) {
-      gap = next.type === "image" && next.flow === "float"
-        ? options.paragraphSpace
-        : Math.max(next.before * options.attachTight, 0.15);
-      if (next.type === "list") gap = Math.max(gap, options.listItemGap);
-    }
-    return gap * em * options.blockGap;
-  };
 
   const pages: DrawItem[][] = [];
   let page: DrawItem[] = [], y = options.marginTop;

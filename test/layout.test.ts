@@ -119,6 +119,30 @@ describe("image layout", () => {
     expect(Math.abs((prose?.y ?? Infinity) - (image?.y ?? 0))).toBeLessThan(DEFAULT_OPTIONS.fontSize * DEFAULT_OPTIONS.lineHeight);
   });
 
+  it("packs a section lead and its subsection beside a portrait", () => {
+    const layout = layoutDocument([
+      { type: "heading", level: 2, runs: [{ text: "Meet the herd" }] },
+      { type: "paragraph", runs: [{ text: "A short introduction to the portrait." }] },
+      { type: "image", source: "portrait.png", alt: "", asset: asset(800, 1200) },
+      { type: "paragraph", runs: [{ text: "Field notes continue beside the image." }] },
+      { type: "heading", level: 3, runs: [{ text: "Pasture notes" }] },
+      { type: "list", ordered: false, items: [
+        { depth: 0, ordered: false, runs: [{ text: "Quiet humming" }] },
+        { depth: 0, ordered: false, runs: [{ text: "Padded feet" }] },
+      ] },
+      { type: "heading", level: 2, runs: [{ text: "Next section" }] },
+      { type: "paragraph", runs: [{ text: "Back in the full column." }] },
+    ]);
+    const page = layout.pages[0]!, image = page.find(item => item.type === "image")!;
+    for (const word of ["Meet", "Field", "Pasture", "Quiet"]) {
+      const item = page.find(candidate => candidate.type === "text" && candidate.text === word)!;
+      expect(item.x).toBeLessThan(image.x);
+      expect(item.y).toBeLessThan(image.y + image.height);
+    }
+    const next = page.find(item => item.type === "text" && item.text === "Next")!;
+    expect(next.y).toBeGreaterThanOrEqual(image.y + image.height);
+  });
+
   it("decorates unused space inside a smart float column", () => {
     const layout = layoutDocument([
       { type: "image", source: "portrait.png", alt: "", asset: asset(800, 1200) },
