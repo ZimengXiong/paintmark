@@ -8,82 +8,73 @@ const proceduralArt = new URLSearchParams(location.search).get("art") === "proce
 const art = (name: "portrait" | "wide" | "tall") => `./demo/images/${proceduralArt ? "procedural-" : ""}${name}.png`;
 const sample = `# Paintdown sample
 
-This document is a layout specimen built from ordinary Markdown. It combines prose, figures, lists, mathematics, code, and tabular data.
+A lot of Markdown-to-PDF tools turn Markdown into HTML, wake up a browser, and ask it to print. Paintdown skips that parade and writes the PDF itself.
 
-Use it to inspect type size, reading measure, spacing, and pagination across different block types.
+Browsers are excellent at websites. Printed pages bring print CSS, headless-browser installs, and the occasional heading stranded like an alpaca outside the fence.
 
-## Responsive image sizing
+## Meet the herd
 
-Images retain their proportions and do not upscale by default. Portrait images can float beside following prose.
+Alpacas are social South American camelids with soft fleece, padded feet, and strong opinions about snack time.
 
-![A matte green, teal, and clay portrait composition](${art("portrait")})
+![Matte green and teal portrait](${art("portrait")})
 
-This paragraph wraps beside the portrait. A measured gutter separates the text and image. The float ends before the next structural block.
+This portrait floats beside the field notes. Juniper, our imaginary alpaca, remains calm while the text keeps a respectful distance from her lunch.
 
-### Measure and rhythm
+### Pasture notes
 
-Content width, line height, and paragraph spacing are independent. A narrower measure creates more line breaks; greater line height adds vertical space without changing the type size.
+- Alpacas often communicate with a quiet hum
+- Their padded feet are gentle on the ground
+- Fleece comes in many natural colors
+  - Juniper insists teal should count
 
-Headings stay with the first lines of the block that follows them.
+### The wide view
 
-### Landscape figures
+Wide images use the content column instead of squeezing prose into a sad little strip.
 
-Landscape images remain in block flow when floating would leave a narrow text column.
+![Blue and violet landscape](${art("wide")})
 
-![A matte indigo, violet, and coral panoramic composition](${art("wide")})
+## Why not print HTML?
 
-### Page flow
+The usual trip is Markdown → HTML → CSS → browser → print → PDF. It can work, but the result may depend on browser versions, font loading, print styles, and page-break rules.
 
-Paragraphs split only when both fragments meet the minimum line count. Headings move with following content instead of sitting alone at a page edge.
+Paintdown takes a shorter route: Markdown → measured layout → PDF. The preview draws the same page boxes used by the writer.
 
-Block images remain in document order. Portrait floats clear before headings, lists, tables, and code.
+1. Parse the document
+2. Measure the text
+3. Paginate the blocks
+4. Write the PDF bytes
+
+> Browsers make lovely websites. Alpacas make terrible print engines.
 
 ---
 
-## Oversized figures
+## A tall order
 
-Images taller than the usable page area are scaled to fit and aligned to the top.
+Tall images are capped by the usable page height. No stretching, squashing, or mysteriously enormous alpacas.
 
-![A tall matte ember, rose, and aubergine composition](${art("tall")})
+![Tall ember and aubergine study](${art("tall")})
 
-The height limit follows the usable page area, so page size and margins affect the figure cap. The aspect ratio does not change.
+The aspect ratio stays intact as the page size and margins change. Following prose can wrap beside the image, then returns to the full column for the next section.
 
-## Markdown details
+## Markdown snacks
 
-- Lists use consistent spacing and hanging indents
-  - Nested items retain their level
-- Headings use the selected display face
-- Inline \`code\` uses the selected code face
-- [Links remain continuous](https://github.com/ZimengXiong/paintdown)
+Use **bold** for a strong nibble, *italics* for a gentle hum, and \`inline code\` for literal names. [Links stay together](https://github.com/ZimengXiong/paintdown), even when they contain spaces.
 
-## Prose and hierarchy
+- Lists keep a hanging indent
+- Nested items keep their level
+- Headings stay with what comes next
 
-Markdown records structure rather than page geometry. Headings divide topics, paragraphs carry continuous prose, and lists group related items.
+## Math break
 
-Short paragraphs create a brisk rhythm. Longer paragraphs slow the pace and give an idea room to develop. A document can use both without changing its type settings.
-
-Emphasis works best when it is selective. **Bold text** marks a strong point, *italics* add a quieter distinction, and \`inline code\` identifies literal names or values.
-
-### Revision sequence
-
-1. Establish the heading structure
-2. Read the prose without formatting distractions
-3. Check figures, captions, lists, and tables
-4. Review page endings for isolated lines or headings
-
-> A page should reveal its structure before every word has been read.
-
-### LaTeX mathematics
-
-Inline mathematics follows the prose baseline: $E = mc^2$ and $a_n = a_1 r^{n-1}$. Display mathematics is centered.
+Alpacas have four legs. Typesetting the rest is harder: $E = mc^2$ and $a_n = a_1 r^{n-1}$ sit on the prose baseline.
 
 $$
 \\int_0^\\infty e^{-x^2} \\, dx = \\frac{\\sqrt{\\pi}}{2}
 $$
 
-### Code
+## Code corral
 
-Fenced blocks preserve indentation and wrap within the content column.
+Long code wraps inside the box instead of wandering into the margin.
 
 \`\`\`ts
 const renderer = createRenderer({
@@ -93,19 +84,17 @@ const renderer = createRenderer({
 const pdf = await renderer.pdf(markdown);
 \`\`\`
 
-## Figure reference
+## Herd roll call
 
-| Feature | Default | Behavior |
+| Alpaca | Mood | Snack |
 | --- | --- | --- |
-| Wide image | max width | No distortion or upscaling |
-| Portrait image | smart float | Following prose wraps beside it |
-| Very tall image | smart float | Capped height with measured gutter |
+| Juniper | calm | hay |
+| Mochi | curious | apple |
+| Pepper | dramatic | grass |
 
-## Character coverage
+## Tiny character parade
 
-The text sample includes curly quotes, an em dash, an en dash, and an ellipsis: “quoted text,” 1990–2000, one clause—then another, and a final pause…
-
-Accented names and words include José, Zürich, naïve, façade, and Ångström. Mathematical prose may also use symbols such as π, Δ, ≤, and → outside a display equation.
+Curly quotes, em dashes, ellipses, and accents all get a turn: “hello,” one thing—then another… José, Zürich, naïve, façade, and Ångström.
 `;
 
 const editor = document.querySelector<HTMLTextAreaElement>("#editor")!;
