@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_OPTIONS, layoutDocument, parseMarkdown, renderHtml } from "../src/index.js";
+import { DEFAULT_OPTIONS, FontRegistry, layoutDocument, parseMarkdown, renderHtml } from "../src/index.js";
 import type { ImageAsset } from "../src/types.js";
 
 const asset = (width: number, height: number): ImageAsset => ({
@@ -62,6 +62,26 @@ describe("HTML output", () => {
     expect(html).toContain('<div class="math-display"');
     expect(html).toContain('<svg aria-hidden="true"');
     expect(html).not.toContain("data:image/png;base64");
+  });
+
+  it("wraps fenced code instead of adding a horizontal scroller", () => {
+    const html = renderHtml(parseMarkdown("```ts\nconst exceptionallyLongIdentifier = createRendererWithManyArguments(markdown, options);\n```"));
+    expect(html).toContain("white-space:pre-wrap");
+    expect(html).toContain("overflow-wrap:anywhere");
+    expect(html).not.toContain("overflow:auto");
+  });
+});
+
+describe("code blocks", () => {
+  it("wraps long highlighted lines inside the native content box", () => {
+    const layout = layoutDocument(parseMarkdown("```ts\nconst renderer = createRenderer({ config: { fontSize: 11, boldHeadings: true }, imageResolver: createFetchImageResolver(fetch, document.baseURI) });\n```" ).blocks, undefined, { contentWidthRatio: 0.55 });
+    const code = layout.pages.flat().filter(item => item.type === "text" && item.mono);
+    expect(new Set(code.map(item => item.y)).size).toBeGreaterThan(1);
+    const rightEdge = 612 / 2 + (612 - 2 * DEFAULT_OPTIONS.marginX) * 0.55 / 2;
+    const fonts = new FontRegistry();
+    expect(code.every(item => item.x + fonts.measure(item.text, item.size, {
+      family: item.family, mono: true, tracking: item.tracking,
+    }) <= rightEdge + 0.01)).toBe(true);
   });
 });
 

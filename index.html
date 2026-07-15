@@ -135,6 +135,22 @@
     @media(max-width:1100px){.setting{grid-template-columns:minmax(118px,1fr) minmax(138px,1.05fr)}.setting select{width:100%}}
     @media(max-width:680px){.setting{grid-template-columns:minmax(112px,.9fr) minmax(138px,1.1fr);gap:10px}#settings fieldset,#settings fieldset:first-of-type{padding-inline:14px}}
   </style>
+  <style>
+    .topbar,#workspace,#settings,.settings-head{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+    #workspace{background:#c9cbcb;box-shadow:inset 0 1px 4px #34383d16!important}
+    .pane,#editorPane,#settings{background:#eeefec!important;box-shadow:inset 0 1px 2px #ffffffa0,0 8px 22px #34383c12!important}
+    .pane-head,.settings-head{background:#e7e8e5!important;box-shadow:inset 0 -1px 2px #353a3f10!important}
+    #previewPane{background:#c9cbcb;contain:strict}
+    .mkd-page-wrap{contain:layout paint;isolation:isolate}.mkd-page{backface-visibility:hidden;-webkit-font-smoothing:antialiased}
+    #settings{padding:0 10px 18px;overscroll-behavior:contain}
+    .settings-head{top:0;min-height:40px;height:40px;margin:0 -10px 6px;padding:0 14px;border-radius:13px 13px 0 0}
+    .settings-head .button{width:26px;min-height:26px;padding:0;border-radius:7px}
+    #settings fieldset,#settings fieldset:first-of-type{margin:0;padding:17px 16px 18px;background:transparent!important;border-radius:0;box-shadow:none!important}
+    #settings legend{margin-bottom:12px;color:#70767b;font-size:10px;letter-spacing:.06em}
+    .setting{margin:4px 0;min-height:35px}
+    .setting select,.font-upload .button{background:#f8f8f5!important;box-shadow:inset 0 1px 1px #fff,inset 0 -1px 3px #34393e10!important}
+    #resetBtn{margin:8px 16px 0;width:calc(100% - 32px);background:#f8f8f5!important}
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -200,6 +216,6 @@
     </fieldset>
     <button class="button" id="resetBtn" type="button">Reset</button>
   </aside>
-  <script type="module" src="./demo/dist/demo.js?v=paintdown-settings-grid-1"></script>
+  <script type="module" src="./demo/dist/demo.js?v=paintdown-code-wrap-1"></script>
 </body>
 </html>

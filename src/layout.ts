@@ -1,6 +1,6 @@
 import { DEFAULT_OPTIONS, HEADING_LINE_HEIGHT, PAGE_SIZES, resolveOptions, typeMetrics } from "./config.js";
 import { FontRegistry } from "./fonts.js";
-import { CODE_COLORS, highlightCodeLine } from "./highlight.js";
+import { CODE_COLORS, highlightCodeLine, type CodeRun, type CodeToken } from "./highlight.js";
 import { typesetDisplayMath } from "./math.js";
 import type { Block, Color, DrawItem, InlineRun, LayoutResult, RenderOptions, TextItem } from "./types.js";
 
@@ -114,6 +114,40 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
     });
   }
 
+  function wrapCodeLine(line: string, language: string, size: number, width: number): CodeRun[][] {
+    const tracking = options.codeLetterSpacing * size;
+    const glyphs: { text: string; token: CodeToken; width: number }[] = [];
+    for (const run of highlightCodeLine(line.replace(/\t/g, "    "), language)) for (const text of run.text) {
+      glyphs.push({ text, token: run.token, width: fonts.measure(text, size, { family: options.monoFont, mono: true, tracking }) });
+    }
+    if (!glyphs.length) return [[{ text: " ", token: "plain" }]];
+
+    const result: CodeRun[][] = [];
+    let start = 0;
+    while (start < glyphs.length) {
+      let used = 0, end = start, preferredBreak = -1;
+      while (end < glyphs.length && (used + glyphs[end]!.width <= width || end === start)) {
+        used += glyphs[end]!.width;
+        if (/\s|[,;)}\]]/.test(glyphs[end]!.text)) preferredBreak = end + 1;
+        end++;
+      }
+      if (end < glyphs.length && preferredBreak > start) end = preferredBreak;
+
+      const slice = glyphs.slice(start, end);
+      while (slice.length > 1 && /\s/.test(slice.at(-1)!.text)) slice.pop();
+      const runs: CodeRun[] = [];
+      for (const glyph of slice) {
+        const previous = runs.at(-1);
+        if (previous?.token === glyph.token) previous.text += glyph.text;
+        else runs.push({ text: glyph.text, token: glyph.token });
+      }
+      result.push(runs.length ? runs : [{ text: " ", token: "plain" }]);
+      start = end;
+      while (start < glyphs.length && /\s/.test(glyphs[start]!.text)) start++;
+    }
+    return result;
+  }
+
   const spacing = {
     paragraph: [0, options.paragraphSpace], list: [0.55, 0.7], code: [0.8, 0.8], quote: [0.8, 0.8],
     table: [0.9, 0.9], image: [options.imageGap, options.imageGap], math: [0.9, 1], rule: [options.ruleSpace, options.ruleSpace],
@@ -151,9 +185,10 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
       compiled.push({ type: block.type, atoms, before: spacing.list[0], after: spacing.list[1], splitMin: 1 });
     } else if (block.type === "code") {
       const size = em * options.codeScale, rowHeight = size * options.codeLineHeight;
-      const atoms = (block.lines.length ? block.lines : [""]).map(line => {
+      const codeWidth = contentWidth - 2 * metrics.codeSidePad;
+      const atoms = (block.lines.length ? block.lines : [""]).flatMap(line => wrapCodeLine(line, block.lang, size, codeWidth)).map(runs => {
         let x = metrics.codeSidePad;
-        const items = highlightCodeLine(line, block.lang).map(run => {
+        const items = runs.map(run => {
           const tracking = options.codeLetterSpacing * size;
           const item: TextItem = { type: "text", x, y: (rowHeight - size) / 2, size, text: run.text, family: options.monoFont, mono: true, tracking, color: CODE_COLORS[run.token] ?? CODE_COLORS.plain };
           x += fonts.measure(run.text, size, { family: options.monoFont, mono: true, tracking }); return item;

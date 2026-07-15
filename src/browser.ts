@@ -28,7 +28,7 @@ export function renderPreview(container: HTMLElement, layout: LayoutResult, font
     const wrapper = document.createElement("div"); wrapper.className = "mkd-page-wrap";
     Object.assign(wrapper.style, { width: `${layout.pageWidth * scale}px`, height: `${layout.pageHeight * scale}px` });
     const page = document.createElement("div"); page.className = "mkd-page";
-    Object.assign(page.style, { position: "relative", width: `${layout.pageWidth}px`, height: `${layout.pageHeight}px`, transform: `scale(${scale})`, transformOrigin: "top left", background: "white", boxShadow: "0 2px 14px #0003" });
+    Object.assign(page.style, { position: "relative", width: `${layout.pageWidth}px`, height: `${layout.pageHeight}px`, transform: `translateZ(0) scale(${scale})`, transformOrigin: "top left", background: "white", boxShadow: "0 2px 14px #0003" });
     for (const item of pageItems) {
       const element = document.createElement(item.type === "image" ? "img" : "div");
       element.style.position = "absolute";
