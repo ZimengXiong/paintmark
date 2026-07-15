@@ -1,0 +1,168 @@
+import { describe, expect, it } from "vitest";
+import { DEFAULT_OPTIONS, layoutDocument, parseMarkdown, renderHtml } from "../src/index.js";
+import type { ImageAsset } from "../src/types.js";
+
+const asset = (width: number, height: number): ImageAsset => ({
+  id: `${width}x${height}`, source: "fixture.png", format: "png", mimeType: "image/png",
+  width, height, channels: 3, bytes: new Uint8Array(), pixels: new Uint8Array(width * height * 3),
+});
+
+describe("typography defaults", () => {
+  it("uses bold headings by default but regular body text", () => {
+    expect(DEFAULT_OPTIONS.boldHeadings).toBe(true);
+    const layout = layoutDocument([
+      { type: "heading", level: 1, runs: [{ text: "Heading" }] },
+      { type: "paragraph", runs: [{ text: "Body" }] },
+    ]);
+    const text = layout.pages.flat().filter(item => item.type === "text");
+    expect(text.find(item => item.text === "Heading")?.bold).toBe(true);
+    expect(text.find(item => item.text === "Body")?.bold).toBeFalsy();
+  });
+
+  it("applies an independently selected font family to inline and fenced code", () => {
+    const layout = layoutDocument(parseMarkdown("Inline `value` here.\n\n```ts\nconst value = 3;\n```").blocks, undefined, { monoFont: "custom-mono" });
+    const code = layout.pages.flat().filter(item => item.type === "text" && item.mono);
+    expect(code.length).toBeGreaterThan(0);
+    expect(code.every(item => item.family === "custom-mono")).toBe(true);
+  });
+
+  it("applies global tracking and centers a narrowed content measure", () => {
+    const layout = layoutDocument([{ type: "paragraph", runs: [{ text: "Measured text" }] }], undefined, {
+      letterSpacing: 0.05,
+      contentWidthRatio: 0.5,
+    });
+    const text = layout.pages[0]!.find(item => item.type === "text" && item.text === "Measured")!;
+    expect(text.tracking).toBeCloseTo(DEFAULT_OPTIONS.fontSize * 0.05);
+    expect(text.x).toBeCloseTo(612 / 2 - (612 - 2 * DEFAULT_OPTIONS.marginX) * 0.5 / 2);
+  });
+
+  it("supports independent body, heading, and code tracking", () => {
+    const layout = layoutDocument(parseMarkdown("# Heading\n\nBody `inline`.\n\n```ts\nconst x = 1;\n```").blocks, undefined, {
+      bodyLetterSpacing: 0.01, headingLetterSpacing: 0.02, codeLetterSpacing: 0.03,
+    });
+    const text = layout.pages.flat().filter(item => item.type === "text");
+    expect(text.find(item => item.text === "Heading")?.tracking).toBeCloseTo(DEFAULT_OPTIONS.fontSize * DEFAULT_OPTIONS.h1Scale * 0.02);
+    expect(text.find(item => item.text === "Body")?.tracking).toBeCloseTo(DEFAULT_OPTIONS.fontSize * 0.01);
+    expect(text.find(item => item.text === "inline")?.tracking).toBeCloseTo(DEFAULT_OPTIONS.fontSize * 0.92 * 0.03);
+    expect(text.find(item => item.text.includes("const"))?.tracking).toBeCloseTo(DEFAULT_OPTIONS.fontSize * DEFAULT_OPTIONS.codeScale * 0.03);
+  });
+
+  it("keeps spaces inside a link's continuous underlined text run", () => {
+    const layout = layoutDocument(parseMarkdown("[Links render together](https://example.com)").blocks);
+    const links = layout.pages.flat().filter(item => item.type === "text" && item.link);
+    expect(links).toHaveLength(1);
+    expect(links[0]?.text).toBe("Links render together");
+  });
+});
+
+describe("HTML output", () => {
+  it("uses retained vector math instead of enlarging the PDF raster", () => {
+    const vectorSvg = '<svg width="8ex" height="2ex" viewBox="0 0 800 200"><path d="M0 0h10v10z"/></svg>';
+    const html = renderHtml({ source: "", blocks: [{ type: "math", source: "x^2", asset: { ...asset(2400, 600), vectorSvg, widthEm: 4, heightEm: 1 } }] });
+    expect(html).toContain('<div class="math-display"');
+    expect(html).toContain('<svg aria-hidden="true"');
+    expect(html).not.toContain("data:image/png;base64");
+  });
+});
+
+describe("image layout", () => {
+  it("caps wide images at the content width without distortion", () => {
+    const layout = layoutDocument([{ type: "image", source: "wide.png", alt: "", asset: asset(1600, 650) }]);
+    const image = layout.pages[0]!.find(item => item.type === "image");
+    expect(image?.width).toBeCloseTo(492);
+    expect(image?.height).toBeCloseTo(492 * 650 / 1600);
+  });
+
+  it("does not upscale small images", () => {
+    const layout = layoutDocument([{ type: "image", source: "small.png", alt: "", asset: asset(100, 100) }]);
+    const image = layout.pages[0]!.find(item => item.type === "image");
+    expect(image?.width).toBeCloseTo(75);
+  });
+
+  it("fits very tall images inside the usable page height", () => {
+    const layout = layoutDocument([{ type: "image", source: "tall.png", alt: "Tall caption", title: "Ignored title", asset: asset(600, 1800) }]);
+    const image = layout.pages[0]!.find(item => item.type === "image");
+    expect(image?.height).toBeLessThanOrEqual((792 - 120) * DEFAULT_OPTIONS.imageMaxHeightRatio);
+    expect(image?.width / image?.height!).toBeCloseTo(1 / 3);
+    expect(layout.pages).toHaveLength(1);
+    expect(layout.pages[0]!.some(item => item.type === "text" && item.text === "Tall")).toBe(true);
+  });
+
+  it("wraps following prose beside portrait images in smart mode", () => {
+    const layout = layoutDocument([
+      { type: "image", source: "portrait.png", alt: "", asset: asset(800, 1200) },
+      { type: "paragraph", runs: [{ text: "Wrapped editorial copy beside the portrait image." }] },
+    ]);
+    const page = layout.pages[0]!, image = page.find(item => item.type === "image");
+    const prose = page.find(item => item.type === "text" && item.text === "Wrapped");
+    expect(image?.x).toBeGreaterThan(prose?.x ?? Infinity);
+    expect(Math.abs((prose?.y ?? Infinity) - (image?.y ?? 0))).toBeLessThan(DEFAULT_OPTIONS.fontSize * DEFAULT_OPTIONS.lineHeight);
+  });
+
+  it("decorates unused space inside a smart float column", () => {
+    const layout = layoutDocument([
+      { type: "image", source: "portrait.png", alt: "", asset: asset(800, 1200) },
+      { type: "paragraph", runs: [{ text: "Short wrapped copy." }] },
+    ], undefined, { blankSpaceDecoration: "dot-grid" });
+    const page = layout.pages[0]!, image = page.find(item => item.type === "image")!;
+    const internalDots = page.filter(item => item.type === "rect" && item.x < image.x && item.y < image.y + image.height);
+    expect(internalDots.length).toBeGreaterThan(10);
+  });
+});
+
+describe("table rendering", () => {
+  it("insets zebra fills so they do not double the grid edge", () => {
+    const layout = layoutDocument(parseMarkdown("| A | B |\n| - | - |\n| one | two |\n| three | four |").blocks);
+    const page = layout.pages[0]!;
+    const fill = page.find(item => item.type === "rect" && item.color[0] === 0.965)!;
+    const leftEdge = Math.min(...page.filter(item => item.type === "line").map(item => Math.min(item.x1, item.x2)));
+    expect(fill.x).toBeGreaterThan(leftEdge);
+  });
+});
+
+describe("blank-space decoration", () => {
+  it("adds the dot field only below content", () => {
+    const layout = layoutDocument(
+      [{ type: "paragraph", runs: [{ text: "A short page." }] }],
+      undefined,
+      { blankSpaceDecoration: "dot-grid" },
+    );
+    const text = layout.pages[0]!.find(item => item.type === "text")!;
+    const dots = layout.pages[0]!.filter(item => item.type === "rect");
+    expect(dots.length).toBeGreaterThan(10);
+    expect(Math.min(...dots.map(dot => dot.y))).toBeGreaterThan(text.y + text.size);
+  });
+});
+
+describe("pagination invariants", () => {
+  const pageOfText = (layout: ReturnType<typeof layoutDocument>, text: string) =>
+    layout.pages.findIndex(page => page.some(item => item.type === "text" && item.text === text));
+
+  it("never strands a heading away from its following paragraph", () => {
+    const filler = Array.from({ length: 28 }, (_, index) => ({ type: "paragraph" as const, runs: [{ text: `Filler-${index}` }] }));
+    const layout = layoutDocument([...filler,
+      { type: "heading", level: 2 as const, runs: [{ text: "KeptHeading" }] },
+      { type: "paragraph" as const, runs: [{ text: "KeptParagraph" }] },
+    ]);
+    expect(pageOfText(layout, "KeptHeading")).toBe(pageOfText(layout, "KeptParagraph"));
+  });
+
+});
+
+describe("LaTeX mathematics", () => {
+  it("parses inline and display dollar syntax", () => {
+    const document = parseMarkdown("Euler wrote $e^{i\\pi}+1=0$.\n\n$$\n\\frac{1}{\\sqrt{x}}\n$$");
+    const paragraph = document.blocks[0];
+    expect(paragraph?.type).toBe("paragraph");
+    expect(paragraph?.type === "paragraph" && paragraph.runs.some(run => run.math && run.text.includes("π"))).toBe(true);
+    expect(document.blocks[1]).toEqual({ type: "math", source: "\\frac{1}{\\sqrt{x}}" });
+  });
+
+  it("composes display fractions, roots, and scripts as native draw items", () => {
+    const document = parseMarkdown("$$\n\\int_0^\\infty e^{-x^2} = \\frac{\\sqrt{\\pi}}{2}\n$$");
+    const layout = layoutDocument(document.blocks);
+    const page = layout.pages[0]!;
+    expect(page.some(item => item.type === "text" && item.text === "∫")).toBe(true);
+    expect(page.filter(item => item.type === "line").length).toBeGreaterThanOrEqual(2);
+  });
+});

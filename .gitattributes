@@ -1,0 +1,6 @@
+fonts/**/*.ttf binary
+demo/images/*.png binary
+*.wasm binary
+package-lock.json text eol=lf
+*.ts text eol=lf
+*.md text eol=lf
