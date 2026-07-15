@@ -6,9 +6,9 @@ import type { FontSlot, RenderOptions } from "../src/types.js";
 
 const proceduralArt = new URLSearchParams(location.search).get("art") === "procedural";
 const art = (name: "portrait" | "wide" | "tall") => `./demo/images/${proceduralArt ? "procedural-" : ""}${name}.png`;
-const sample = `# Markdown, typeset
+const sample = `# Paintdown example
 
-Paintdown turns familiar Markdown into carefully composed pages. The renderer measures every glyph, wraps every line, and writes the final PDF directly—without Chromium, a print dialog, or an upload.
+This document exercises typography, pagination, images, math, code, links, and tables using one renderer.
 
 ## Responsive image sizing
 
@@ -76,7 +76,7 @@ const decorationSeed = Math.floor(Math.random() * 0x100000000);
 const demoDefaults: RenderOptions = { ...DEFAULT_OPTIONS,
   bodyFont: inter.body.id, headingFont: inter.display.id, boldHeadings: true,
   marginX: 60, marginTop: 60, marginBottom: 60,
-  blankSpaceDecoration: "none", blankSpaceDecorationSeed: decorationSeed,
+  blankSpaceDecoration: "dot-grid", blankSpaceDecorationSeed: decorationSeed,
 };
 const demoConfig: RenderOptions = { ...demoDefaults };
 await registerBrowserFonts([inter.body, inter.display]);
@@ -190,6 +190,7 @@ marginControl.addEventListener("input", () => {
 const settingsBackdrop = document.querySelector<HTMLElement>("#settingsBackdrop")!;
 const setSettingsOpen = (open: boolean) => {
   settings.classList.toggle("open", open); settingsBackdrop.classList.toggle("open", open);
+  document.body.classList.toggle("settings-open", open);
   settingsButton.setAttribute("aria-expanded", String(open)); settings.setAttribute("aria-hidden", String(!open));
 };
 settingsButton.addEventListener("click", () => setSettingsOpen(!settings.classList.contains("open")));

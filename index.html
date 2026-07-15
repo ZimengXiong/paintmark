@@ -3,13 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Paintdown turns Markdown into carefully typeset, native PDFs—entirely in your browser.">
-  <meta name="theme-color" content="#f4f2ed">
-  <meta property="og:title" content="Paintdown — Markdown, typeset">
-  <meta property="og:description" content="A private, native Markdown typesetter and PDF renderer.">
-  <meta property="og:type" content="website">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='3' width='21' height='26' rx='2' fill='white' stroke='%2320252c' stroke-width='2'/%3E%3Cpath d='M10 11h11M10 16h11M10 21h7' stroke='%23255cce' stroke-width='2'/%3E%3Ccircle cx='26' cy='23' r='3' fill='%23255cce'/%3E%3C/svg%3E">
-  <title>Paintdown — Markdown, typeset</title>
+  <meta name="theme-color" content="#c5c6c7">
+  <title>paintdown</title>
   <style>
     :root{
       color-scheme:light;--paper:#fff;--canvas:#eceae5;--chrome:#f7f6f2;--ink:#20252c;--muted:#697078;
@@ -36,14 +31,73 @@
     @media(max-width:680px){body{grid-template-rows:54px 1fr}.topbar{gap:8px;padding:0 10px}.brand{font-size:14px}.mark{width:24px;height:28px}.view-switch{display:flex;margin-left:auto}.top-actions{margin-left:0}.top-actions .button:not(.primary):not(#settingsBtn){display:none}.button{min-height:32px;padding:0 10px}.button.primary{font-size:0}.button.primary:after{content:"PDF";font-size:11px}#workspace{display:block;position:relative}.pane{position:absolute;inset:0}.pane-head{height:39px}#workspace[data-mobile-view="editor"] #previewShell,#workspace[data-mobile-view="preview"] #editorPane{display:none}#editorPane{border-right:0}#editorPane textarea{padding:22px 20px 70px;font-size:12px}#previewPane{padding:18px 10px 60px}.mkd-page-wrap{margin-bottom:16px}#settings{top:54px;width:100%;border-left:0}#settingsBackdrop{inset:54px 0 0}.setting{grid-template-columns:1fr 165px}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
   </style>
+  <style>
+    body{grid-template-columns:0 minmax(0,1fr);column-gap:0;transition:grid-template-columns .2s ease,column-gap .2s ease}
+    body.settings-open{grid-template-columns:390px minmax(0,1fr);column-gap:10px}
+    .topbar{grid-column:1/-1;grid-row:1}
+    #workspace{grid-column:2;grid-row:2}
+    #settingsBackdrop{display:none!important}
+    #settings{position:relative;grid-column:1;grid-row:2;top:auto!important;right:auto!important;bottom:auto!important;width:390px;height:100%;min-height:0;transform:translateX(calc(-100% - 12px));visibility:hidden;box-shadow:inset 0 2px 6px #34383d1f,inset 0 -1px 1px #fff8;transition:transform .2s ease,visibility 0s linear .2s}
+    #settings.open{transform:none;visibility:visible;transition:transform .2s ease,visibility 0s}
+    .settings-head{top:-10px}
+    figcaption{line-height:1.12}
+    @media(max-width:1100px){body.settings-open{grid-template-columns:340px minmax(0,1fr)}#settings{width:340px}.setting{grid-template-columns:minmax(0,1fr) 150px}.setting select{width:150px}}
+    @media(max-width:680px){body{grid-template-columns:0 minmax(0,1fr)}body.settings-open{grid-template-columns:calc(100vw - 14px) 0;column-gap:0}#settings{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;width:calc(100vw - 14px);height:100%}.settings-head{top:-10px}}
+  </style>
+  <style>
+    .topbar{border:0;box-shadow:inset 0 1px 1px #fff8,inset 0 -2px 4px #373b4017,0 7px 20px #3333}
+    .button{border:0;box-shadow:inset 0 1px 1px #fff9,inset 0 -2px 3px #32363a1c}.button:hover{border:0}.button.primary{border:0;box-shadow:inset 0 1px 1px #ffffff25,inset 0 -2px 3px #0005}
+    .view-switch{border:0;box-shadow:inset 0 2px 5px #34383d24,inset 0 -1px 1px #fff8}
+    #workspace{border:0;box-shadow:inset 0 3px 8px #34383d22,inset 0 -1px 2px #fff7}
+    .pane,#editorPane{border:0;box-shadow:inset 0 2px 5px #34383d20,inset 0 -1px 1px #fff8,0 4px 12px #3332}
+    .pane-head{border:0;box-shadow:inset 0 -2px 4px #34383d13}
+    .mkd-page{border:0;box-shadow:0 4px 16px #34363a30!important}
+    #settings{border:0;box-shadow:inset 0 2px 6px #34383d1f,inset 0 -1px 1px #fff8,-10px 14px 34px #3334}
+    .settings-head{border:0;box-shadow:inset 0 -2px 4px #34383d15}
+    #settings fieldset,#settings fieldset:first-of-type{border:0;box-shadow:inset 0 2px 5px #34383d1c,inset 0 -1px 1px #fff8}
+    .setting select{border:0;box-shadow:inset 0 2px 4px #34383d1e,inset 0 -1px 1px #fff9}
+  </style>
+  <style>
+    :root{--paper:#fff;--canvas:#c3c5c6;--chrome:#d9dad9;--ink:#222529;--muted:#64696e;--line:rgba(30,34,38,.13);--line-strong:rgba(30,34,38,.22);--accent:#275bc7;font-family:"mkd-inter",Arial,sans-serif;background:var(--canvas)}
+    body{grid-template-rows:64px 1fr;padding:0 10px 10px;background:linear-gradient(145deg,#ced0d1,#b9bbbd)}
+    .topbar{align-self:center;height:46px;padding:0 12px;background:rgba(245,245,242,.48);border:2px solid rgba(255,255,255,.48);border-radius:14px;box-shadow:inset 0 0 0 1px rgba(31,34,38,.06),0 8px 22px #3334;backdrop-filter:blur(18px)}
+    .brand{display:block;color:var(--ink);font:650 17px/1 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.07em;text-decoration:none}.mark,.promise{display:none!important}
+    .top-actions{gap:6px}.button{min-height:31px;padding:0 11px;border:2px solid rgba(255,255,255,.48);border-radius:9px;background:rgba(250,250,248,.38);box-shadow:inset 0 0 0 1px rgba(30,34,38,.08);color:var(--ink);font-size:11px;transition:background .12s}.button:hover{border-color:rgba(255,255,255,.64);background:rgba(255,255,255,.72)}.button:active{transform:none}.button.primary{border-color:rgba(255,255,255,.2);background:#25282c;color:#fff}.button.primary:hover{background:#35393e}.button.icon{width:31px;padding:0}
+    .view-switch{padding:2px;border:2px solid rgba(255,255,255,.4);border-radius:10px;background:rgba(250,250,248,.24);box-shadow:inset 0 0 0 1px rgba(30,34,38,.06)}.view-switch button{border-radius:6px}.view-switch button.active{box-shadow:none}
+    #workspace{grid-template-columns:minmax(340px,39%) minmax(0,1fr);gap:10px;padding:10px;overflow:hidden;background:rgba(238,239,238,.18);border:2px solid rgba(255,255,255,.4);border-radius:18px;box-shadow:inset 0 0 0 1px rgba(30,34,38,.07)}
+    .pane{overflow:hidden;background:rgba(246,246,243,.58);border:2px solid rgba(255,255,255,.42);border-radius:13px;box-shadow:inset 0 0 0 1px rgba(30,34,38,.07),0 5px 14px #3332}.pane-head{height:40px;padding:0 14px;background:rgba(239,239,236,.68);border-color:rgba(30,34,38,.12);color:var(--muted);font-size:10px;letter-spacing:.07em}.pane-head .meta{color:var(--muted)}
+    #editorPane{border:2px solid rgba(255,255,255,.42)}#editorPane textarea{padding:25px 26px 80px;background:rgba(251,251,248,.74);color:#30343a}
+    #previewPane{padding:26px 22px 70px;background:rgba(190,192,193,.5);background-image:none}.mkd-page-wrap{margin-bottom:22px}.mkd-page{border:1px solid rgba(40,43,46,.16);border-radius:2px;box-shadow:0 4px 16px #34363a30!important}
+    #settingsBackdrop{inset:0;background:#3333;backdrop-filter:blur(2px)}
+    #settings{top:74px;right:10px;bottom:10px;width:min(410px,calc(100vw - 20px));padding:10px;background:rgba(218,219,218,.9);border:2px solid rgba(255,255,255,.52);border-radius:17px;box-shadow:inset 0 0 0 1px rgba(30,34,38,.08),-10px 14px 34px #3334;backdrop-filter:blur(22px);transition-duration:.18s}
+    .settings-head{top:-10px;min-height:52px;margin:-10px -10px 8px;padding:0 14px;background:rgba(229,230,229,.92);border-bottom:2px solid rgba(255,255,255,.38);border-radius:15px 15px 0 0;backdrop-filter:blur(18px)}.settings-head h2{font-size:13px;letter-spacing:-.01em}.settings-head p{display:none}
+    #settings fieldset,#settings fieldset:first-of-type{margin:9px 0;padding:16px 14px 12px;background:rgba(250,250,248,.26);border:2px solid rgba(255,255,255,.43);border-radius:13px;box-shadow:inset 0 0 0 1px rgba(30,34,38,.065)}#settings legend{padding:0 6px;color:#62676c;font-size:9px;letter-spacing:.12em}.setting{grid-template-columns:minmax(0,1fr) 170px;margin:11px 0}.setting select{border:2px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,253,.55);box-shadow:inset 0 0 0 1px rgba(30,34,38,.1)}#resetBtn{background:rgba(250,250,248,.32)}
+    @media(max-width:900px){#workspace{grid-template-columns:minmax(300px,44%) minmax(0,1fr)}.topbar{padding:0 10px}#previewPane{padding-inline:15px}}
+    @media(max-width:680px){body{grid-template-rows:58px 1fr;padding:0 7px 7px}.topbar{height:44px;padding:0 9px;border-radius:12px}.brand{font-size:15px}.view-switch{display:flex;margin-left:auto}.top-actions{margin-left:0}.top-actions .button:not(.primary):not(#settingsBtn){display:none}#workspace{display:block;position:relative;padding:7px;border-radius:15px}.pane{inset:7px;border-radius:11px}#previewPane{padding:12px 6px 50px}#settings{top:65px;right:7px;bottom:7px;width:calc(100vw - 14px)}#settingsBackdrop{inset:0}.setting{grid-template-columns:1fr 162px}}
+  </style>
+  <style>
+    body{grid-template-columns:0 minmax(0,1fr);column-gap:0;transition:grid-template-columns .2s ease,column-gap .2s ease}
+    body.settings-open{grid-template-columns:390px minmax(0,1fr);column-gap:10px}
+    .topbar{grid-column:1/-1;grid-row:1;border:0;box-shadow:inset 0 1px 1px #fff8,inset 0 -2px 4px #373b4017,0 7px 20px #3333}
+    #workspace{grid-column:2;grid-row:2;border:0;box-shadow:inset 0 3px 8px #34383d22,inset 0 -1px 2px #fff7}
+    .button{border:0;box-shadow:inset 0 1px 1px #fff9,inset 0 -2px 3px #32363a1c}.button:hover,.button.primary{border:0}
+    .view-switch{border:0;box-shadow:inset 0 2px 5px #34383d24,inset 0 -1px 1px #fff8}
+    .pane,#editorPane{border:0;box-shadow:inset 0 2px 5px #34383d20,inset 0 -1px 1px #fff8,0 4px 12px #3332}.pane-head{border:0;box-shadow:inset 0 -2px 4px #34383d13}.mkd-page{border:0}
+    #settingsBackdrop{display:none!important}
+    #settings{position:relative;grid-column:1;grid-row:2;top:auto!important;right:auto!important;bottom:auto!important;width:390px;height:100%;min-height:0;border:0;transform:translateX(calc(-100% - 12px));visibility:hidden;box-shadow:inset 0 2px 6px #34383d1f,inset 0 -1px 1px #fff8;transition:transform .2s ease,visibility 0s linear .2s}
+    #settings.open{transform:none;visibility:visible;transition:transform .2s ease,visibility 0s}.settings-head{top:-10px;border:0;box-shadow:inset 0 -2px 4px #34383d15}
+    #settings fieldset,#settings fieldset:first-of-type{border:0;box-shadow:inset 0 2px 5px #34383d1c,inset 0 -1px 1px #fff8}.setting select{border:0;box-shadow:inset 0 2px 4px #34383d1e,inset 0 -1px 1px #fff9}
+    figcaption{line-height:1.12}
+    @media(max-width:1100px){body.settings-open{grid-template-columns:340px minmax(0,1fr)}#settings{width:340px}.setting{grid-template-columns:minmax(0,1fr) 150px}.setting select{width:150px}}
+    @media(max-width:680px){body{grid-template-columns:0 minmax(0,1fr)}body.settings-open{grid-template-columns:calc(100vw - 14px) 0;column-gap:0}#settings{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;width:calc(100vw - 14px);height:100%}}
+  </style>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="./" aria-label="Paintdown home"><span class="mark" aria-hidden="true"></span><span>Paintdown</span></a>
-    <span class="promise">Local, native PDF rendering</span>
+    <a class="brand" href="./">paintdown</a>
     <div class="view-switch" aria-label="Mobile workspace view"><button type="button" data-view-target="editor">Write</button><button type="button" class="active" data-view-target="preview">Preview</button></div>
     <nav class="top-actions" aria-label="Document actions">
-      <a class="button icon" href="https://github.com/ZimengXiong/paintdown" aria-label="Paintdown on GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2.23c-3.22.7-3.9-1.37-3.9-1.37-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.57-.29-5.27-1.28-5.27-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.16 1.18A10.95 10.95 0 0 1 12 6.1c.98 0 1.95.13 2.87.39 2.2-1.49 3.16-1.18 3.16-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.71 5.39-5.29 5.68.42.36.79 1.07.79 2.16v3.26c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z"/></svg></a>
+      <a class="button" href="https://github.com/ZimengXiong/paintdown">GitHub</a>
       <button class="button" id="settingsBtn" type="button" aria-expanded="false" aria-controls="settings">Tune</button>
       <button class="button" id="htmlBtn" type="button">Export HTML</button>
       <button class="button primary" id="pdfBtn" type="button">Download PDF</button>
@@ -52,7 +106,7 @@
 
   <main id="workspace" data-mobile-view="preview">
     <section class="pane" id="editorPane" aria-label="Markdown editor">
-      <div class="pane-head"><span>Markdown</span><span class="meta">Everything stays on this device</span></div>
+      <div class="pane-head"><span>Markdown</span></div>
       <textarea id="editor" spellcheck="false" aria-label="Markdown source"></textarea>
     </section>
     <section class="pane" id="previewShell" aria-label="Document preview">
@@ -63,7 +117,7 @@
 
   <div id="settingsBackdrop" aria-hidden="true"></div>
   <aside id="settings" aria-label="Rendering settings" aria-hidden="true">
-    <div class="settings-head"><div><h2>Typesetting</h2><p>Every control is reflected in the PDF.</p></div><button class="button icon" id="settingsClose" type="button" aria-label="Close settings">×</button></div>
+    <div class="settings-head"><h2>Settings</h2><button class="button icon" id="settingsClose" type="button" aria-label="Close settings">×</button></div>
     <fieldset><legend>Page</legend>
       <label class="setting">Page size<select data-config="pageSize"><option value="letter">Letter</option><option value="a4">A4</option></select></label>
       <label class="setting">Equal margins<span class="range-wrap"><input type="range" min="32" max="96" step="2" value="60" data-margin><output>60</output></span></label>
@@ -100,8 +154,8 @@
       <label class="setting">Code spacing<span class="range-wrap"><input type="range" min="-0.05" max="0.15" step="0.005" data-config="codeLetterSpacing"><output></output></span></label>
       <label class="setting">Code leading<span class="range-wrap"><input type="range" min="1.05" max="1.6" step="0.05" data-config="codeLineHeight"><output></output></span></label>
     </fieldset>
-    <button class="button" id="resetBtn" type="button">Restore thoughtful defaults</button>
+    <button class="button" id="resetBtn" type="button">Reset</button>
   </aside>
-  <script type="module" src="./demo/dist/demo.js?v=paintdown-1"></script>
+  <script type="module" src="./demo/dist/demo.js?v=paintdown-matte-1"></script>
 </body>
 </html>

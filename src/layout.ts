@@ -203,7 +203,7 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
       const intrinsicWidth = block.asset.width * 72 / options.imageDpi, intrinsicHeight = block.asset.height * 72 / options.imageDpi;
       const nextBlock = blocks[sourceIndex + 1];
       const shouldFloat = options.imageFlow === "smart" && intrinsicHeight > intrinsicWidth * 1.1 && nextBlock?.type === "paragraph";
-      const captionReserve = options.showImageAltAsCaption && block.alt ? em * (options.imageCaptionGap + 0.88 * 1.35) : 0;
+      const captionReserve = options.showImageAltAsCaption && block.alt ? em * (options.imageCaptionGap + 0.88 * 1.12) : 0;
       const usablePageHeight = pageHeight - options.marginTop - options.marginBottom;
       const usableHeight = Math.max(em * 6, usablePageHeight * options.imageMaxHeightRatio - captionReserve);
       const maximumWidth = shouldFloat ? contentWidth * options.imageFloatWidthRatio : contentWidth;
@@ -214,7 +214,7 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
         : options.imageAlign === "left" ? 0 : options.imageAlign === "right" ? contentWidth - width : (contentWidth - width) / 2;
       const atoms: Atom[] = [{ height, items: [{ type: "image", x, y: 0, width, height, asset: block.asset }] }];
       if (options.showImageAltAsCaption && block.alt) {
-        const captionSize = em * 0.88, captionLine = captionSize * 1.35;
+        const captionSize = em * 0.88, captionLine = captionSize * 1.12;
         const captionAtoms = textAtoms([{ text: block.alt, italic: true }], captionSize, width, captionLine, { x, family: options.bodyFont });
         if (captionAtoms.length) captionAtoms[0]!.height += options.imageCaptionGap * em;
         for (const atom of captionAtoms) for (const item of atom.items) if (item.type === "text") { item.y += options.imageCaptionGap * em; item.color = MUTED; }
@@ -273,7 +273,10 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
         for (let column = 0; column <= columns; column++) { items.push({ type: "line", x1: x, y1: 0, x2: x, y2: height, width: gridWidth, color: BORDER }); x += widths[column] ?? 0; }
         items.push({ type: "line", x1: 0, y1: height, x2: contentWidth, y2: height, width: gridWidth, color: BORDER });
         if (!rowIndex) items.push({ type: "line", x1: 0, y1: 0, x2: contentWidth, y2: 0, width: gridWidth, color: BORDER });
-        row.forEach((_, column) => cellLines[column]?.forEach((words, line) => items.push(...makeLine(words, widths.slice(0, column).reduce((a, b) => a + b, 0) + pad, pad * 0.8 + line * size * 1.35, size))));
+        const textBlockHeight = size + (rows - 1) * size * 1.35;
+        const textTop = (height - textBlockHeight) / 2;
+        row.forEach((_, column) => cellLines[column]?.forEach((words, line) => items.push(...makeLine(words,
+          widths.slice(0, column).reduce((a, b) => a + b, 0) + pad, textTop + line * size * 1.35, size))));
         return { height, items };
       });
       compiled.push({ type: block.type, atoms, before: spacing.table[0], after: spacing.table[1], splitMin: 2 });
