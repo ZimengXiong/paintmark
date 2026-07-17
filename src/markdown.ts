@@ -21,7 +21,7 @@ function mergeRuns(runs: InlineRun[]): InlineRun[] {
   for (const run of runs) {
     if (!run.text) continue;
     const prev = out.at(-1);
-    if (prev && prev.bold === run.bold && prev.italic === run.italic &&
+    if (prev && prev.bold === run.bold && prev.italic === run.italic && prev.strike === run.strike &&
         prev.code === run.code && prev.link === run.link && prev.math === run.math && !run.mathSource && !prev.mathSource) prev.text += run.text;
     else out.push({ ...run });
   }
@@ -35,7 +35,7 @@ function referenceUrl(node: LinkReference | ImageReference, ctx: ParseContext): 
 function inlineRuns(
   nodes: PhrasingContent[],
   ctx: ParseContext,
-  style: Pick<InlineRun, "bold" | "italic" | "link"> = {},
+  style: Pick<InlineRun, "bold" | "italic" | "strike" | "link"> = {},
 ): InlineRun[] {
   const runs: InlineRun[] = [];
   for (const node of nodes) {
@@ -45,7 +45,7 @@ function inlineRuns(
       case "inlineMath": runs.push({ text: latexToText(node.value), math: true, mathSource: node.value, italic: true, ...style }); break;
       case "strong": runs.push(...inlineRuns(node.children, ctx, { ...style, bold: true })); break;
       case "emphasis": runs.push(...inlineRuns(node.children, ctx, { ...style, italic: true })); break;
-      case "delete": runs.push(...inlineRuns(node.children, ctx, style)); break;
+      case "delete": runs.push(...inlineRuns(node.children, ctx, { ...style, strike: true })); break;
       case "link": runs.push(...inlineRuns((node as Link).children, ctx, { ...style, link: node.url })); break;
       case "linkReference": {
         const url = referenceUrl(node as LinkReference, ctx);

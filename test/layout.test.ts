@@ -53,6 +53,13 @@ describe("typography defaults", () => {
     expect(links).toHaveLength(1);
     expect(links[0]?.text).toBe("Links render together");
   });
+
+  it("preserves GFM strikethrough in the native display list", () => {
+    const layout = layoutDocument(parseMarkdown("Keep ~~old words together~~ here.").blocks);
+    const struck = layout.pages.flat().filter(item => item.type === "text" && item.strike);
+    expect(struck).toHaveLength(1);
+    expect(struck[0]?.text).toBe("old words together");
+  });
 });
 
 describe("HTML output", () => {
@@ -69,6 +76,11 @@ describe("HTML output", () => {
     expect(html).toContain("white-space:pre-wrap");
     expect(html).toContain("overflow-wrap:anywhere");
     expect(html).not.toContain("overflow:auto");
+  });
+
+  it("renders GFM strikethrough as semantic HTML", () => {
+    const html = renderHtml(parseMarkdown("Keep ~~old words~~ here."));
+    expect(html).toContain("<del>old words</del>");
   });
 });
 

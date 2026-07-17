@@ -31,6 +31,7 @@ function runs(runs: InlineRun[]): string {
     if (run.code) result = `<code>${result}</code>`;
     if (run.bold) result = `<strong>${result}</strong>`;
     if (run.italic) result = `<em>${result}</em>`;
+    if (run.strike) result = `<del>${result}</del>`;
     if (run.link) result = `<a href="${escape(run.link)}">${result}</a>`;
     return result;
   }).join("");

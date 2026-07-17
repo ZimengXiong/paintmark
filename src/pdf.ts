@@ -78,6 +78,10 @@ export function renderPdf(layout: LayoutResult, fonts = new FontRegistry()): Uin
           operation = `/${cid.resource} ${number(item.size)} Tf ${number(item.tracking ?? 0)} Tc ${item.color.join(" ")} rg ${number(item.x)} ${number(baseline)} Td <${hex}> Tj`;
         } else operation = `/${baseFont(item)} ${number(item.size)} Tf ${number(item.tracking ?? 0)} Tc ${item.color.join(" ")} rg ${number(item.x)} ${number(baseline)} Td (${escapePdf(item.text)}) Tj`;
         stream += `BT ${operation} ET\n`;
+        if (item.strike) {
+          const width = fonts.measure(item.text, item.size, { family: item.family, bold: item.bold, italic: item.italic, mono: item.mono, tracking: item.tracking });
+          stream += `${item.color.join(" ")} RG ${number(Math.max(0.5, item.size * 0.055))} w ${number(item.x)} ${number(baseline + item.size * 0.28)} m ${number(item.x + width)} ${number(baseline + item.size * 0.28)} l S\n`;
+        }
         if (item.link) {
           const width = fonts.measure(item.text, item.size, { family: item.family, bold: item.bold, italic: item.italic, mono: item.mono, tracking: item.tracking });
           stream += `${item.color.join(" ")} RG 0.5 w ${number(item.x)} ${number(baseline - 1.5)} m ${number(item.x + width)} ${number(baseline - 1.5)} l S\n`;

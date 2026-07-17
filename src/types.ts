@@ -4,6 +4,7 @@ export interface InlineRun {
   text: string;
   bold?: boolean;
   italic?: boolean;
+  strike?: boolean;
   code?: boolean;
   link?: string;
   /** TeX source for inline mathematics. */
@@ -100,7 +101,7 @@ export interface TextItem {
   type: "text";
   x: number; y: number; size: number; text: string;
   family: string; bold?: boolean; italic?: boolean; mono?: boolean;
-  tracking?: number; color: Color; link?: string;
+  tracking?: number; color: Color; link?: string; strike?: boolean;
 }
 export interface RectItem { type: "rect"; x: number; y: number; width: number; height: number; color: Color }
 export interface LineItem { type: "line"; x1: number; y1: number; x2: number; y2: number; width: number; color: Color }

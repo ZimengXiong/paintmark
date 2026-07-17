@@ -19,7 +19,7 @@ await build({
 await build({
   entryPoints: ["src/cli.ts"], outdir: "dist", format: "esm", platform: "node", bundle: true, sourcemap: false,
   target: "node20", loader: { ".ttf": "binary", ".wasm": "binary" }, banner: { js: "#!/usr/bin/env node" },
-  define: { __PAINTDOWN_VERSION__: JSON.stringify(packageJson.version) },
+  define: { __PAINTMARK_VERSION__: JSON.stringify(packageJson.version) },
 });
 await chmod("dist/cli.js", 0o755);
 await mkdir("packages/fonts/dist", { recursive: true });

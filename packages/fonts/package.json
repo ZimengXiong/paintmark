@@ -14,10 +14,10 @@
   },
   "files": ["dist", "index.d.ts"],
   "keywords": ["paintmark", "fonts", "pdf", "typography"],
-  "homepage": "https://github.com/ZimengXiong/paintdown",
+  "homepage": "https://github.com/ZimengXiong/paintmark",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ZimengXiong/paintdown.git"
+    "url": "git+https://github.com/ZimengXiong/paintmark.git"
   },
   "author": "Zimeng Xiong",
   "peerDependencies": {

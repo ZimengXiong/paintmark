@@ -8,7 +8,7 @@ import { createFetchImageResolver, decodeImage } from "./images.js";
 import { createRenderer } from "./renderer.js";
 import type { ImageResolver, RenderOptions } from "./types.js";
 
-declare const __PAINTDOWN_VERSION__: string;
+declare const __PAINTMARK_VERSION__: string;
 
 const enums: Partial<Record<keyof RenderOptions, readonly string[]>> = {
   pageSize: ["letter", "a4"], indentStyle: ["all", "book", "off"], imageFlow: ["smart", "block"],
@@ -48,7 +48,7 @@ function tuningHelp(): string {
 }
 
 function help(): string {
-  return `paintmark ${__PAINTDOWN_VERSION__}
+  return `paintmark ${__PAINTMARK_VERSION__}
 
 Usage:
   paintmark <input.md> [options]
@@ -140,7 +140,7 @@ function openWithSystem(path: string): void {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) { process.stdout.write(help()); return; }
-  if (args.version) { process.stdout.write(`${__PAINTDOWN_VERSION__}\n`); return; }
+  if (args.version) { process.stdout.write(`${__PAINTMARK_VERSION__}\n`); return; }
   if (!args.input) throw new Error("Missing Markdown input. Run paintmark --help for usage.");
 
   let config: Partial<RenderOptions> = { blankSpaceDecoration: "dot-grid" };

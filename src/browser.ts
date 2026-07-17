@@ -34,7 +34,7 @@ export function renderPreview(container: HTMLElement, layout: LayoutResult, font
       element.style.position = "absolute";
       if (item.type === "text") {
         element.textContent = item.text;
-        Object.assign(element.style, { left: `${item.x}px`, top: `${item.y}px`, font: fontCss(item, families), color: color(item.color), whiteSpace: "pre", letterSpacing: `${item.tracking ?? 0}px`, textDecoration: item.link ? "underline" : "none" });
+        Object.assign(element.style, { left: `${item.x}px`, top: `${item.y}px`, font: fontCss(item, families), color: color(item.color), whiteSpace: "pre", letterSpacing: `${item.tracking ?? 0}px`, textDecoration: [item.link && "underline", item.strike && "line-through"].filter(Boolean).join(" ") || "none" });
       } else if (item.type === "rect") Object.assign(element.style, { left: `${item.x}px`, top: `${item.y}px`, width: `${item.width}px`, height: `${item.height}px`, background: color(item.color) });
       else if (item.type === "line") Object.assign(element.style, { left: `${Math.min(item.x1, item.x2)}px`, top: `${Math.min(item.y1, item.y2) - item.width / 2}px`, width: `${Math.abs(item.x2 - item.x1) || item.width}px`, height: `${Math.abs(item.y2 - item.y1) || item.width}px`, background: color(item.color) });
       else {

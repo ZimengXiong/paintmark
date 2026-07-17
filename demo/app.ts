@@ -6,9 +6,9 @@ import type { FontSlot, RenderOptions } from "../src/types.js";
 
 const proceduralArt = new URLSearchParams(location.search).get("art") === "procedural";
 const art = (name: "portrait" | "wide" | "tall") => `./demo/images/${proceduralArt ? "procedural-" : ""}${name}.png`;
-const sample = `# Paintdown sample
+const sample = `# Paintmark sample
 
-A lot of Markdown-to-PDF tools turn Markdown into HTML, wake up a browser, and ask it to print. Paintdown skips that parade and writes the PDF itself.
+A lot of Markdown-to-PDF tools turn Markdown into HTML, wake up a browser, and ask it to print. Paintmark skips that parade and writes the PDF itself.
 
 Browsers are excellent at websites. Printed pages bring print CSS, headless-browser installs, and the occasional heading stranded like an alpaca outside the fence.
 
@@ -37,7 +37,7 @@ Wide images use the content column instead of squeezing prose into a sad little 
 
 The usual trip is Markdown → HTML → CSS → browser → print → PDF. It can work, but the result may depend on browser versions, font loading, print styles, and page-break rules.
 
-Paintdown takes a shorter route: Markdown → measured layout → PDF. The preview draws the same page boxes used by the writer.
+Paintmark takes a shorter route: Markdown → measured layout → PDF. The preview draws the same page boxes used by the writer.
 
 1. Parse the document
 2. Measure the text
@@ -58,7 +58,7 @@ The aspect ratio stays intact as the page size and margins change. Following pro
 
 ## Markdown snacks
 
-Use **bold** for a strong nibble, *italics* for a gentle hum, and \`inline code\` for literal names. [Links stay together](https://github.com/ZimengXiong/paintdown), even when they contain spaces.
+Use **bold** for a strong nibble, *italics* for a gentle hum, ~~strikethrough for revised thoughts~~, and \`inline code\` for literal names. [Links stay together](https://github.com/ZimengXiong/paintmark), even when they contain spaces.
 
 - Lists keep a hanging indent
 - Nested items keep their level
@@ -108,7 +108,7 @@ const fetchImage = createFetchImageResolver(fetch, document.baseURI);
 const cleanPath = (path: string) => path.replace(/\\/g, "/").replace(/^\/+/, "").replace(/\/+/g, "/");
 const localImagePath = (source: string) => {
   const plain = source.split(/[?#]/, 1)[0]!;
-  try { return cleanPath(decodeURIComponent(new URL(plain, `https://paintdown.local/${markdownPath}`).pathname)); }
+  try { return cleanPath(decodeURIComponent(new URL(plain, `https://paintmark.local/${markdownPath}`).pathname)); }
   catch { return cleanPath(plain); }
 };
 const demoDefaults: RenderOptions = { ...DEFAULT_OPTIONS,

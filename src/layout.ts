@@ -84,14 +84,14 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
         cursor += word.width;
         continue;
       }
-      if (word.space && !word.link) { flush(); cursor += word.width + extraSpace; continue; }
-      const nextKey = [word.bold, word.italic, word.mono, word.family, word.tracking, word.link].join("|");
+      if (word.space && !word.link && !word.strike) { flush(); cursor += word.width + extraSpace; continue; }
+      const nextKey = [word.bold, word.italic, word.strike, word.mono, word.family, word.tracking, word.link].join("|");
       if (segment && nextKey === key) segment.text += word.text;
       else {
         flush(); key = nextKey;
         segment = { type: "text", x: cursor, y: y + (word.mono ? (baseSize - word.size) * 0.86 : 0), size: word.size,
           text: word.text, family: word.family, bold: word.bold, italic: word.italic, mono: word.mono,
-          tracking: word.tracking, link: word.link, color: word.link ? [0.04, 0.41, 0.85] : BODY };
+          tracking: word.tracking, link: word.link, strike: word.strike, color: word.link ? [0.04, 0.41, 0.85] : BODY };
       }
       cursor += word.width;
     }
@@ -103,7 +103,7 @@ export function layoutDocument(blocks: Block[], fonts = new FontRegistry(), part
     const lines = wrap(runs, size, width, config);
     return lines.map((words, index) => {
       const indent = index ? 0 : config.firstIndent ?? 0, natural = words.reduce((sum, word) => sum + word.width, 0);
-      const spaces = words.filter(word => word.space && !word.link).length, deficit = width - indent - natural;
+      const spaces = words.filter(word => word.space && !word.link && !word.strike).length, deficit = width - indent - natural;
       const extra = config.justify && index < lines.length - 1 && spaces && deficit > 0 && deficit < width * 0.28 ? deficit / spaces : 0;
       const mathAscent = Math.max(0, ...words.map(word => word.assetHeight ? word.assetHeight * (word.mathAsset?.baselineRatio ?? 0.8) : 0));
       const mathDescent = Math.max(0, ...words.map(word => word.assetHeight ? word.assetHeight * (1 - (word.mathAsset?.baselineRatio ?? 0.8)) : 0));

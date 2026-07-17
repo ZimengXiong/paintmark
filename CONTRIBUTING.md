@@ -1,6 +1,6 @@
-# Contributing to Paintdown
+# Contributing to Paintmark
 
-Paintdown is an early-stage native document renderer. Changes to layout should preserve the same geometry across preview, HTML where applicable, and PDF output.
+Paintmark is an early-stage native document renderer. Changes to layout should preserve the same geometry across preview, HTML where applicable, and PDF output.
 
 ## Development
 

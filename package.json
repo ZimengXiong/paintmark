@@ -1,6 +1,6 @@
 {
   "name": "paintmark",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A deterministic Markdown typesetter and native PDF renderer for TypeScript",
   "keywords": [
     "markdown",
@@ -11,13 +11,13 @@
     "latex",
     "renderer"
   ],
-  "homepage": "https://github.com/ZimengXiong/paintdown#readme",
+  "homepage": "https://github.com/ZimengXiong/paintmark#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ZimengXiong/paintdown.git"
+    "url": "git+https://github.com/ZimengXiong/paintmark.git"
   },
   "bugs": {
-    "url": "https://github.com/ZimengXiong/paintdown/issues"
+    "url": "https://github.com/ZimengXiong/paintmark/issues"
   },
   "author": "Zimeng Xiong",
   "type": "module",

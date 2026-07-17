@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRenderer, decodeImage } from "../dist/index.js";
 import { loadInter } from "../dist/inter.js";
 
-const markdown = `# Paintdown
+const markdown = `# Paintmark
 
 This verification document exercises the public API, embedded fonts, image decoding, display-list pagination, and native PDF output.
 
