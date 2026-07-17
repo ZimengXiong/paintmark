@@ -50,6 +50,7 @@
     "dist/cli.js",
     "fonts/INTER-LICENSE.txt",
     "fonts/noto-emoji/OFL.txt",
+    "assets/emoji/LICENSE-GRAPHICS",
     "README.md",
     "LICENSE"
   ],

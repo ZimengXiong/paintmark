@@ -135,9 +135,9 @@ describe("HTML output", () => {
     const emoji = layout.pages.flat().filter(item => item.type === "text" && /[🎨📄]/u.test(item.text));
     expect(emoji.map(item => item.family)).toEqual(["emoji", "emoji"]);
     const html = renderHtml(document, config, registry.values());
-    expect(html).toContain('font-family:"mkd-emoji"');
-    expect(html).toContain(">🎨</span>");
-    expect(html).toContain(">📄</span>");
+    expect(html.match(/class="paintmark-image"/g)).toHaveLength(2);
+    expect(html).not.toContain(">🎨</span>");
+    expect(html).not.toContain(">📄</span>");
   });
 });
 

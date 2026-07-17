@@ -1,4 +1,5 @@
 import { resolveOptions } from "./config.js";
+import { resolveColorEmoji } from "./color-emoji.js";
 import { FontRegistry } from "./fonts.js";
 import { layoutDocument } from "./layout.js";
 import { loadStandardFonts } from "./standard-fonts.js";
@@ -27,7 +28,7 @@ const rgb = (color: readonly number[]) => `rgb(${color.map(channel => Math.round
 function paintedFont(item: TextItem, families: Map<string, FontFamily>): string {
   const custom = families.get(item.family);
   if (!custom) throw new Error(`HTML font ${item.family} is not embedded`);
-  return `"${custom.cssFamily}"`;
+  return custom.cssFamily;
 }
 
 function paintedItem(item: DrawItem, families: Map<string, FontFamily>): string {
@@ -53,6 +54,7 @@ function paintedItem(item: DrawItem, families: Map<string, FontFamily>): string 
 }
 
 export function renderHtml(document: MarkdownDocument, partial: Partial<RenderOptions> = {}, fonts: FontFamily[] = []): string {
+  document = resolveColorEmoji(document);
   let embedded = fonts, configured = partial;
   if (!embedded.length) {
     const standard = loadStandardFonts();

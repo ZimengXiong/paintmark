@@ -1,4 +1,5 @@
 import { FontRegistry } from "./fonts.js";
+import { resolveColorEmoji } from "./color-emoji.js";
 import { renderHtml } from "./html.js";
 import { resolveDocumentImages } from "./images.js";
 import { layoutDocument } from "./layout.js";
@@ -12,7 +13,7 @@ export function createRenderer(options: RendererOptions = {}) {
   const fonts = new FontRegistry([standard.body, standard.display, standard.mono, standard.emoji, ...(options.fonts ?? [])]);
   const config = { bodyFont: standard.body.id, headingFont: standard.display.id, monoFont: standard.mono.id, ...options.config };
   const prepare = async (source: string | MarkdownDocument): Promise<MarkdownDocument> => {
-    let document = typeof source === "string" ? parseMarkdown(source) : source;
+    let document = resolveColorEmoji(typeof source === "string" ? parseMarkdown(source) : source);
     const hasMathRuns = (block: import("./types.js").Block): boolean => block.type === "paragraph" || block.type === "heading" ? block.runs.some(run => run.mathSource)
       : block.type === "list" ? block.items.some(item => item.runs.some(run => run.mathSource))
       : block.type === "table" ? [...block.header, ...block.rows.flat()].some(cell => cell.some(run => run.mathSource))
