@@ -32,5 +32,5 @@ await copyFile("LICENSE", "packages/fonts/dist/LICENSE");
 await promisify(execFile)("npx", ["tsc", "--emitDeclarationOnly"]);
 await build({
   entryPoints: { demo: "demo/app.ts" }, outdir: "demo/dist", format: "esm", platform: "browser", bundle: true, sourcemap: true,
-  splitting: true, target: "es2022", loader: { ".ttf": "binary", ".wasm": "binary" },
+  splitting: true, target: "es2022", loader: { ".ttf": "binary", ".wasm": "binary", ".md": "text" },
 });

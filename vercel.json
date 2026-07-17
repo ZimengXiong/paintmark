@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build:site",
-  "outputDirectory": "site"
+  "outputDirectory": "site",
+  "rewrites": [
+    { "source": "/html", "destination": "/exports/paintmark.html" },
+    { "source": "/pdf", "destination": "/exports/paintmark.pdf" }
+  ]
 }
