@@ -6,76 +6,33 @@ import type { FontSlot, RenderOptions } from "../src/types.js";
 
 const proceduralArt = new URLSearchParams(location.search).get("art") === "procedural";
 const art = (name: "portrait" | "wide" | "tall") => `./demo/images/${proceduralArt ? "procedural-" : ""}${name}.png`;
-const sample = `# Paintmark sample
+const sample = `# paintmark 🎨📄
+> browsers make lovely websites, but they make terrible print engines.
 
-A lot of Markdown-to-PDF tools turn Markdown into HTML, wake up a browser, and ask it to print. Paintmark skips that parade and writes the PDF itself.
+a lot of Markdown-to-PDF tools turn Markdown into HTML, wake up a browser, and ask it to print, or they turn it into LaTeX or Typst and print that instead. as a result, you (often) get terribly formatted garbage that ruins the simplicity that should be Markdown.
 
-Browsers are excellent at websites. Printed pages bring print CSS, headless-browser installs, and the occasional heading stranded like an alpaca outside the fence.
+paintmark skips that whole parade and writes the PDF itself, no middleman, all in typescript
 
-## Meet the herd
+## smart-wrap
 
-Alpacas are social South American camelids with soft fleece, padded feet, and strong opinions about snack time.
+paintmark has two modes: \`smart-wrap\` and \`blocked\`. the former auto wraps words around images whenever possible, and the latter strictly preserves vertical order.
 
-![Matte green and teal portrait](${art("portrait")})
+![matte green and teal portrait](${art("portrait")})
 
-This portrait floats beside the field notes. Juniper, our imaginary alpaca, remains calm while the text keeps a respectful distance from her lunch.
+## some other things
 
-### Pasture notes
+- blank space is filled by random dots to make it feel less empty
+- image alt text is auto presented as captions
+- text is spaced accordingly to how related sections are. this makes lists, paragraphs, and headers look nice and are easy to ready
+- sizing is done proportionally to the default font size
 
-- Alpacas often communicate with a quiet hum
-- Their padded feet are gentle on the ground
-- Fleece comes in many natural colors
-  - Juniper insists teal should count
-
-### The wide view
-
-Wide images use the content column instead of squeezing prose into a sad little strip.
-
-![Blue and violet landscape](${art("wide")})
-
-## Why not print HTML?
-
-The usual trip is Markdown → HTML → CSS → browser → print → PDF. It can work, but the result may depend on browser versions, font loading, print styles, and page-break rules.
-
-Paintmark takes a shorter route: Markdown → measured layout → PDF. The preview draws the same page boxes used by the writer.
-
-1. Parse the document
-2. Measure the text
-3. Paginate the blocks
-4. Write the PDF bytes
-
-> Browsers make lovely websites. Alpacas make terrible print engines.
-
----
-
-## A tall order
-
-Tall images are capped by the usable page height. No stretching, squashing, or mysteriously enormous alpacas.
-
-![Tall ember and aubergine study](${art("tall")})
-
-The aspect ratio stays intact as the page size and margins change. Following prose can wrap beside the image, then returns to the full column for the next section.
-
-## Markdown snacks
-
-Use **bold** for a strong nibble, *italics* for a gentle hum, ~~strikethrough for revised thoughts~~, and \`inline code\` for literal names. [Links stay together](https://github.com/ZimengXiong/paintmark), even when they contain spaces.
-
-- Lists keep a hanging indent
-- Nested items keep their level
-- Headings stay with what comes next
-
-## Math break
-
-Alpacas have four legs. Typesetting the rest is harder: $E = mc^2$ and $a_n = a_1 r^{n-1}$ sit on the prose baseline.
-
+### math
+equations and LaTeX render as you would expect, inline  $E = mc^2$ and $a_n = a_1 r^{n-1}$ and blocked:
 $$
 \\int_0^\\infty e^{-x^2} \\, dx = \\frac{\\sqrt{\\pi}}{2}
 $$
 
-## Code corral
-
-Long code wraps inside the box instead of wandering into the margin.
-
+and so do code
 \`\`\`ts
 const renderer = createRenderer({
   config: { fontSize: 11, boldHeadings: true },
@@ -84,17 +41,43 @@ const renderer = createRenderer({
 const pdf = await renderer.pdf(markdown);
 \`\`\`
 
-## Herd roll call
+---
 
-| Alpaca | Mood | Snack |
+tables as well, duh!
+| alpaca | mood | snack |
 | --- | --- | --- |
-| Juniper | calm | hay |
-| Mochi | curious | apple |
-| Pepper | dramatic | grass |
+| juniper | calm | hay |
+| mochi | curious | apple |
+| pepper | dramatic | grass |
+### the wide view
 
-## Tiny character parade
+Wide images use the content column instead of squeezing prose into a sad little strip.
 
-Curly quotes, em dashes, ellipses, and accents all get a turn: “hello,” one thing—then another… José, Zürich, naïve, façade, and Ångström.
+![blue and violet landscape](${art("wide")})
+
+## soo... why not print HTML?
+
+the usual trip is Markdown → HTML → CSS → browser → print → PDF. It can work, but the result may depend on browser versions, font loading, print styles, and page-break rules, they also look nothing like the preview.
+
+paintdown takes a shorter route: Markdown → measured layout → PDF. The preview draws the same page boxes used by the writer.
+
+1. parse the document
+2. measure the text
+3. paginate the blocks
+4. write the PDF bytes
+---
+
+## a tall order
+
+tall images are capped by the usable page height. no stretching, squashing, or mysteriously enormous alpacas.
+
+![tall ember and aubergine study](${art("tall")})
+
+the aspect ratio stays intact as the page size and margins change. following prose can wrap beside the image, then returns to the full column for the next section.
+
+## tiny character parade
+
+curly quotes, em dashes, ellipses, and accents all get a turn: “hello,” one thing—then another… José, Zürich, naïve, façade, and Ångström.
 `;
 
 const editor = document.querySelector<HTMLTextAreaElement>("#editor")!;
