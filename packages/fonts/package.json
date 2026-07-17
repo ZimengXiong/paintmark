@@ -1,0 +1,27 @@
+{
+  "name": "paintmark-fonts",
+  "version": "0.1.0",
+  "description": "Optional PDF-embeddable font collection for Paintmark",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "index.d.ts"],
+  "keywords": ["paintmark", "fonts", "pdf", "typography"],
+  "homepage": "https://github.com/ZimengXiong/paintdown",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZimengXiong/paintdown.git"
+  },
+  "author": "Zimeng Xiong",
+  "peerDependencies": {
+    "paintmark": "^0.1.0"
+  },
+  "license": "MIT"
+}

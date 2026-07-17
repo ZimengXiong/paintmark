@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import { DEFAULT_OPTIONS } from "./config.js";
 import { createFontFamily } from "./fonts.js";
 import { createFetchImageResolver, decodeImage } from "./images.js";
-import { loadInter } from "./inter.js";
 import { createRenderer } from "./renderer.js";
 import type { ImageResolver, RenderOptions } from "./types.js";
 
@@ -48,11 +47,11 @@ function tuningHelp(): string {
 }
 
 function help(): string {
-  return `paintdown ${__PAINTDOWN_VERSION__}
+  return `paintmark ${__PAINTDOWN_VERSION__}
 
 Usage:
-  paintdown <input.md> [options]
-  cat input.md | paintdown - -o output.pdf
+  paintmark <input.md> [options]
+  cat input.md | paintmark - -o output.pdf
 
 Options:
   -o, --output <file>              Output PDF (defaults beside the input)
@@ -105,7 +104,7 @@ function parseArgs(argv: string[]): ParsedArgs {
       continue;
     }
     if (argument.startsWith("-") && argument !== "-") throw new Error(`Unknown option: ${argument}`);
-    if (result.input) throw new Error("Paintdown accepts one Markdown input at a time");
+    if (result.input) throw new Error("Paintmark accepts one Markdown input at a time");
     result.input = argument;
   }
   return result;
@@ -130,7 +129,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) { process.stdout.write(help()); return; }
   if (args.version) { process.stdout.write(`${__PAINTDOWN_VERSION__}\n`); return; }
-  if (!args.input) throw new Error("Missing Markdown input. Run paintdown --help for usage.");
+  if (!args.input) throw new Error("Missing Markdown input. Run paintmark --help for usage.");
 
   let config: Partial<RenderOptions> = { blankSpaceDecoration: "dot-grid" };
   if (args.configPath) {
@@ -144,13 +143,12 @@ async function main() {
   const inputPath = args.input === "-" ? undefined : resolve(args.input);
   const source = inputPath ? await readFile(inputPath, "utf8") : await readStdin();
   const baseDirectory = inputPath ? dirname(inputPath) : process.cwd();
-  const inter = loadInter(), fonts = [inter.body, inter.display];
-  config = { bodyFont: inter.body.id, headingFont: inter.display.id, ...config };
+  const fonts = [];
   if (args.fontPath) {
     const custom = createFontFamily({ regular: new Uint8Array(await readFile(resolve(args.fontPath))) }, "custom");
     fonts.push(custom); config.bodyFont = custom.id; config.headingFont = custom.id;
   }
-  const output = resolve(args.output ?? (inputPath ? `${inputPath.slice(0, -extname(inputPath).length)}.pdf` : "paintdown.pdf"));
+  const output = resolve(args.output ?? (inputPath ? `${inputPath.slice(0, -extname(inputPath).length)}.pdf` : "paintmark.pdf"));
   const renderer = createRenderer({ fonts, config, imageResolver: localImageResolver(baseDirectory) });
   const html = extname(output).toLowerCase() === ".html";
   const result = html ? await renderer.html(source) : await renderer.pdf(source);
@@ -161,6 +159,6 @@ async function main() {
 }
 
 main().catch(error => {
-  process.stderr.write(`paintdown: ${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(`paintmark: ${error instanceof Error ? error.message : String(error)}\n`);
   process.exitCode = 1;
 });
