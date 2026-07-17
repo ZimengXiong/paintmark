@@ -1,6 +1,6 @@
 {
   "name": "paintmark",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A deterministic Markdown typesetter and native PDF renderer for TypeScript",
   "keywords": [
     "markdown",
@@ -60,7 +60,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm test && npm run build && npm run test:cli",
-    "test:cli": "node dist/cli.js --version && node dist/cli.js README.md -o tmp/cli-smoke.pdf --blank-space-decoration none && node dist/cli.js README.md -o tmp/cli-smoke.html",
+    "test:cli": "node dist/cli.js --version && node dist/cli.js README.md -o tmp/cli-smoke.pdf --blank-space-decoration none --no-open && node dist/cli.js README.md -o tmp/cli-smoke.html --no-open",
     "prepublishOnly": "npm run check"
   },
   "devDependencies": {

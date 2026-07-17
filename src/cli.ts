@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
 import { basename, dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DEFAULT_OPTIONS } from "./config.js";
@@ -57,6 +58,7 @@ Options:
   -o, --output <file>              Output PDF (defaults beside the input)
   --config <file>                  JSON object containing any tuning options
   --font <file.ttf>                Use a local TrueType font for body and headings
+  --no-open                        Do not open the generated file
   --help                           Show this help
   --version                        Show the version
 
@@ -74,15 +76,18 @@ interface ParsedArgs {
   fontPath?: string;
   help: boolean;
   version: boolean;
+  open: boolean;
   tuning: Record<string, unknown>;
 }
 
 function parseArgs(argv: string[]): ParsedArgs {
-  const result: ParsedArgs = { help: false, version: false, tuning: {} };
+  const result: ParsedArgs = { help: false, version: false, open: true, tuning: {} };
   for (let index = 0; index < argv.length; index++) {
     const argument = argv[index]!;
     if (argument === "--help" || argument === "-h") { result.help = true; continue; }
     if (argument === "--version" || argument === "-v") { result.version = true; continue; }
+    if (argument === "--open") { result.open = true; continue; }
+    if (argument === "--no-open") { result.open = false; continue; }
     if (argument === "-o" || argument === "--output") { result.output = argv[++index]; if (!result.output) throw new Error(`${argument} needs a file`); continue; }
     if (argument === "--config") { result.configPath = argv[++index]; if (!result.configPath) throw new Error("--config needs a file"); continue; }
     if (argument === "--font") { result.fontPath = argv[++index]; if (!result.fontPath) throw new Error("--font needs a TTF file"); continue; }
@@ -125,6 +130,13 @@ function localImageResolver(baseDirectory: string): ImageResolver {
   };
 }
 
+function openWithSystem(path: string): void {
+  const command = process.platform === "darwin" ? "open" : process.platform === "win32" ? "explorer.exe" : "xdg-open";
+  const child = spawn(command, [path], { detached: true, stdio: "ignore" });
+  child.on("error", () => {});
+  child.unref();
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) { process.stdout.write(help()); return; }
@@ -156,6 +168,7 @@ async function main() {
   await writeFile(output, result);
   const size = typeof result === "string" ? Buffer.byteLength(result) : result.length;
   process.stdout.write(`${basename(output)} · ${size.toLocaleString()} bytes\n`);
+  if (args.open) openWithSystem(output);
 }
 
 main().catch(error => {
