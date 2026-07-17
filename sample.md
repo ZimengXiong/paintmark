@@ -9,7 +9,7 @@ paintmark skips that whole parade and writes the PDF itself, no middleman, all i
 
 paintmark has two modes: `smart-wrap` and `blocked`. the former auto wraps words around images whenever possible, and the latter strictly preserves vertical order.
 
-![matte green and teal portrait](./demo/images/portrait.png)
+![matte green and teal portrait](./demo/images/portrait.jpg)
 
 ## some other things
 
@@ -45,7 +45,7 @@ tables as well, duh!
 
 Wide images use the content column instead of squeezing prose into a sad little strip.
 
-![blue and violet landscape](./demo/images/wide.png)
+![blue and violet landscape](./demo/images/wide.jpg)
 
 ## soo... why not print HTML?
 
@@ -63,7 +63,7 @@ paintdown takes a shorter route: Markdown → measured layout → PDF. The previ
 
 tall images are capped by the usable page height. no stretching, squashing, or mysteriously enormous alpacas.
 
-![tall ember and aubergine study](./demo/images/tall.png)
+![tall ember and aubergine study](./demo/images/tall.jpg)
 
 the aspect ratio stays intact as the page size and margins change. following prose can wrap beside the image, then returns to the full column for the next section.
 
