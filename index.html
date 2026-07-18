@@ -192,6 +192,26 @@
     #dropHint{position:fixed;z-index:100;inset:56px 16px 16px;display:grid;place-items:center;border:2px dashed #2d6eb7;border-radius:9px;background:#dceaf8e8;color:#245d9e;font-size:14px;font-weight:600;text-shadow:0 1px #fff;opacity:0;pointer-events:none;transition:opacity .1s}.folder-dragging #dropHint{opacity:1}
     @media(max-width:680px){#openFolderBtn{display:inline-flex!important}#dropHint{inset:48px 8px 8px}}
   </style>
+  <style>
+    /* The editor and preview are workspace columns, not cards inside another card. */
+    #workspace{
+      gap:8px;
+      padding:0;
+      overflow:hidden;
+      background:transparent!important;
+      border:0!important;
+      border-radius:0!important;
+      box-shadow:none!important;
+    }
+    #editorPane,#previewShell{
+      height:100%;
+      min-height:0;
+    }
+    @media(max-width:680px){
+      #workspace{padding:0}
+      .pane{inset:0}
+    }
+  </style>
 </head>
 <body>
   <header class="topbar">

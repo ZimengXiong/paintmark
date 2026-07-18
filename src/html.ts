@@ -71,9 +71,10 @@ export function renderHtml(document: MarkdownDocument, partial: Partial<RenderOp
     : Math.max(item.y1, item.y2) + item.width / 2;
   const isDot = (item: DrawItem) => item.type === "rect"
     && item.width <= options.fontSize * 0.2 && item.height <= options.fontSize * 0.2;
-  const segments = layout.pages.map(items => {
+  const segments = layout.pages.map((items, index) => {
     const content = items.filter(item => !isDot(item));
-    const top = content.length ? Math.min(...content.map(itemTop)) : options.marginTop;
+    const contentTop = content.length ? Math.min(...content.map(itemTop)) : options.marginTop;
+    const top = Math.max(0, contentTop - (index === 0 ? 0 : options.fontSize * options.lineHeight));
     const bottom = content.length ? Math.max(...content.map(itemBottom)) : top;
     const visible = items.filter(item => !isDot(item) || (itemBottom(item) >= top && itemTop(item) <= bottom));
     return { top, height: Math.max(options.fontSize, bottom - top), items: visible };

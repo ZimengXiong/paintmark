@@ -129,6 +129,17 @@ describe("HTML output", () => {
     expect(html).not.toContain("<p>");
   });
 
+  it("keeps normal leading before content joined from a later page", () => {
+    const document = parseMarkdown(Array.from({ length: 48 }, (_, index) =>
+      `Paragraph ${index + 1} has enough words to exercise continuous multi-page output.`
+    ).join("\n\n"));
+    const html = exactHtml(document);
+    const secondSegment = html.match(/aria-label="Document segment 2"[^>]*>(.*?)<\/section>/s)?.[1];
+    expect(secondSegment).toBeTruthy();
+    const firstTop = Number(secondSegment?.match(/top:([0-9.]+)px/)?.[1]);
+    expect(firstTop).toBeGreaterThanOrEqual(DEFAULT_OPTIONS.fontSize * DEFAULT_OPTIONS.lineHeight);
+  });
+
   it("routes emoji through deterministic supplemental coverage", () => {
     const registry = new FontRegistry([
       fixtureFamily("primary", new Map([[0x20, 3], [0x3f, 3]])),
